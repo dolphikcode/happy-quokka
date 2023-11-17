@@ -1,0 +1,325 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+<body>
+<div class="container mt-5">
+    <!--  Filter and Sort  -->
+    <div class="btn-toolbar" role="toolbar" aria-label="Filter and Sort">
+        <!--  Watched radios      -->
+        <div class="btn-group btn-group-sm me-2" role="group" id="filterWatched" aria-label="Filter watched">
+            <input type="radio" class="btn-check" name="filter-watched" id="fW" autocomplete="off" {% if data.config.fW == -1 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fW">All</label>
+
+            <input type="radio" class="btn-check" name="filter-watched" id="fWTrue" autocomplete="off" {% if data.config.fW == 1 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fWTrue">
+                <i class="material-icons opacity-10" style="font-size:22px;color:green;">visibility</i>
+            </label>
+
+            <input type="radio" class="btn-check" name="filter-watched" id="fWFalse" autocomplete="off" {% if data.config.fW == 0 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fWFalse">
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">visibility_off</i>
+            </label>
+        </div>
+
+        <!--  To Download radios  -->
+        <div class="btn-group btn-group-sm me-2" role="group" id="filterToDownload" aria-label="Filter To Download">
+            <input type="radio" class="btn-check" name="filter-download" id="fD" autocomplete="off" {% if data.config.fD == -1 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fD">All</label>
+
+            <input type="radio" class="btn-check" name="filter-download" id="fDTrue" autocomplete="off" {% if data.config.fD == 1 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fDTrue">
+                <i class="material-icons opacity-10" style="font-size:22px;color:green;">download_for_offline</i>
+            </label>
+
+            <input type="radio" class="btn-check" name="filter-download" id="fDFalse" autocomplete="off" {% if data.config.fD == 0 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fDFalse">
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">download</i>
+            </label>
+        </div>
+
+        <!--  File Exist radios  -->
+        <div class="btn-group btn-group-sm me-2" role="group" id="filterFileExist" aria-label="Filter File Exist">
+            <input type="radio" class="btn-check" name="filter-file-exist" id="fF" autocomplete="off" {% if data.config.fF == -1 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fF">All</label>
+
+            <input type="radio" class="btn-check" name="filter-file-exist" id="fFTrue" autocomplete="off" {% if data.config.fF == 1 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fFTrue">
+                <i class="material-icons opacity-10" style="font-size:22px;color:green;">file_download_done</i>
+            </label>
+
+            <input type="radio" class="btn-check" name="filter-file-exist" id="fFFalse" autocomplete="off" {% if data.config.fF == 0 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="fFFalse">
+                <i class="material-icons opacity-10" style="font-size:22px;color:red;">file_download_done</i>
+            </label>
+        </div>
+
+        <!--  Sort radios  -->
+        <div class="btn-group btn-group-sm me-2" role="group" id="Sort" aria-label="Filter File Exist">
+            <input type="radio" class="btn-check" name="sort" id="sAA" autocomplete="off" {% if data.config.sort == 0 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="sAA">
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">task</i>
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">arrow_upward</i>
+            </label>
+            <input type="radio" class="btn-check" name="sort" id="sAD" autocomplete="off" {% if data.config.sort == 1 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="sAD">
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">task</i>
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">arrow_downward</i>
+            </label>
+            <input type="radio" class="btn-check" name="sort" id="sRA" autocomplete="off" {% if data.config.sort == -1 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="sRA">
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">movie</i>
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">arrow_upward</i>
+            </label>
+            <input type="radio" class="btn-check" name="sort" id="sRD" autocomplete="off" {% if data.config.sort == -2 %}checked{% endif %}>
+            <label class="btn btn-outline-primary" onclick="filterSort()" for="sRD">
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">movie</i>
+                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">arrow_downward</i>
+            </label>
+        </div>
+
+        <!--  Filter button  -->
+        <div class="btn-group btn-group-sm" role="group" aria-label="Third group">
+            <a href="{{ url_for('mytube_blueprint.mytube', fW=data.config.fW, fD=data.config.fD, fF=data.config.fF, sort=data.config.sort, trash=data.config.trash) }}" type="button" id="button-filter" name="button-filter" class="btn btn-info">Filter</a>
+        </div>
+    </div>
+    <h1 class="text-center">{{ data.config.title }} ({{ data.config.count }})</h1>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for video in data.videos %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="position-relative">
+                    <!-- Video thumbnail -->
+                    <a href="{{ url_for('mytube_blueprint.video', video_id=video.id) }}">
+                        <img src="{{ url_for('mytube_blueprint.display_thumbnail', video_id=video.id) }}" class="card-img-top" alt="Thumbnail">
+                    </a>
+                    <!-- Video duration -->
+                    <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;{{ video.duration }}&nbsp;</strong></p>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('mytube_blueprint.video', video_id=video.id) }}">
+                        <h5 class="card-title">{% autoescape off %}{{ video.title }}{% endautoescape %}</h5>
+                    </a>
+                    <p class="card-text">Channel: {{ video.channel }}</p>
+                    <p class="card-text">Release date: {{ video.release_date }}</p>
+
+                    <!-- Watched, Deleted and To Download status with icon -->
+                    <span class="card-text" id="watched-status" data-video-id="{{ video.id }}" data-status-type="watched">
+                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'watched')" style="font-size:32px;{% if video.watched %}color:green;">visibility{% else %}">visibility_off{% endif %}</i>
+                    </span>
+                    <span class="card-text" id="deleted-status" data-video-id="{{ video.id }}" data-status-type="deleted">
+                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'deleted')" style="font-size:32px;{% if video.deleted %}color:red;">delete{% else %}">delete_forever{% endif %}</i>
+                    </span>
+                    <span class="card-text" id="download-status" data-video-id="{{ video.id }}" data-status-type="to_download">
+                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'to_download')" style="font-size:32px;{% if video.to_download %}color:green;">download_for_offline{% else %}">download{% endif %}</i>
+                    </span>
+                    {% if video.file_exist %}
+                        <span class="card-text">
+                            <i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i>
+                        </span>
+                    {% endif %}
+                    <!-- Playlists Dropdown -->
+                    <p>
+                        <div class="dropdown float-end">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown{{ video.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <!-- Playlist name or "Add to playlist" -->
+                                {% if video.playlist_id %}
+                                    {{ (video.playlist_name[:50] + '..') if video.playlist_name|length > 50 else video.playlist_name }}
+                                {% else %}
+                                     Add to playlist
+                                {% endif %}
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="playlistDropdown{{ video.id }}">
+                                {% for playlist in playlists %}
+                                    {% if playlist.id != video.playlist_id %}
+                                        <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }})">{{ playlist.name }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+
+</body>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<!-- Bootstrap JS and Popper.js (if needed) -->
+<script src="{{ url_for('static', filename='assets/js/plugins/chartjs.min.js') }}"></script>
+
+<script>
+    const baseUrl = "{{ url_for('static', filename='') }}";
+</script>
+
+<!-- Toggle status of Watched and To_Download-->
+<script>
+    function toggleStatus(element) {
+        const videoId = element.parentElement.dataset.videoId;
+        const statusType = element.parentElement.dataset.statusType;
+
+        // Make an asynchronous request to update the status
+        fetch('{{ url_for('mytube_blueprint.update_status') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `video_id=${videoId}&status_type=${statusType}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the image source based on the new status
+                if (statusType == 'watched') {
+                    const iconName = data.new_status ? 'visibility' : 'visibility_off';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:green;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+                else if (statusType == 'deleted') {
+                    const iconName = data.new_status ? 'delete' : 'delete_forever';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:red;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+                else if (statusType == 'to_download') {
+                    const iconName = data.new_status ? 'download_for_offline' : 'download';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:green;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+
+            } else {
+                console.error('Failed to update status.');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating status:', error);
+        });
+    }
+</script>
+
+<!-- Filter and sort -->
+<script>
+    function filterSort() {
+        var x_watched = '';
+        var x_to_download = '';
+        var x_file_exist = '';
+        var x_sort = '';
+        var x_deleted = '&trash='+{{ data.config.trash }};
+
+
+        // Wait 100ms to function properly
+        setTimeout(function(){
+            // Get all radio buttons in the Watched group
+            var radioButtons = document.getElementsByName("filter-watched");
+
+            // Loop through the radio buttons to find the checked one
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i].checked && radioButtons[i].id != 'fW') {
+                    x_watched = 'fw='+String(radioButtons[i].id).substring(2);
+                    break;  // Exit the loop since we found the checked radio button
+                }
+            }
+
+
+            // Get all radio buttons in the To Download group
+            var radioButtons = document.getElementsByName("filter-download");
+
+            // Loop through the radio buttons to find the checked one
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i].checked && radioButtons[i].id != 'fD') {
+                    x_to_download = '&fd='+String(radioButtons[i].id).substring(2);
+                    break;  // Exit the loop since we found the checked radio button
+                }
+            }
+
+
+            // Get all radio buttons in the File Exist group
+            var radioButtons = document.getElementsByName("filter-file-exist");
+
+            // Loop through the radio buttons to find the checked one
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i].checked && radioButtons[i].id != 'fF') {
+                    x_file_exist = '&ff='+String(radioButtons[i].id).substring(2);
+                    break;  // Exit the loop since we found the checked radio button
+                }
+            }
+
+
+
+            // Get all radio buttons in Sort group
+            var radioButtons = document.getElementsByName("sort");
+
+            // Loop through the radio buttons to find the checked one
+            for (var i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i].checked) {
+                    switch(radioButtons[i].id) {
+                        case 'sRA':
+                            x_sort = '&sort=-1';
+                            break;
+                        case 'sRD':
+                            x_sort = '&sort=-2';
+                            break;
+                        case 'sAA':
+                            x_sort = '&sort=0';
+                            break;
+                        case 'sAD':
+                            x_sort = '&sort=1';
+                            break;
+                        default:
+                            x_sort = '&sort=0';
+                        }
+                    break;  // Exit the loop since we found the checked radio button
+                }
+            }
+
+            // Set href for Button
+            var filterButton = document.getElementById("button-filter");
+            filterButton.href = '{{ url_for('mytube_blueprint.mytube') }}'+'?'
+                                    +x_watched
+                                    +x_to_download
+                                    +x_file_exist
+                                    +x_sort
+                                    +x_deleted;
+        }, 100);
+    }
+</script>
+
+<!-- Add video to the playlist -->
+<script>
+    function addToPlaylist(videoId, playlistId) {
+        // Make an asynchronous request to update the playlist
+        fetch('{{ url_for('mytube_blueprint.add_to_playlist') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `video_id=${videoId}&playlist_id=${playlistId}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Video added to playlist successfully!');
+            } else {
+                alert('Failed to add video to playlist.');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding video to playlist:', error);
+        });
+    }
+</script>
+
+{% endblock javascripts %}

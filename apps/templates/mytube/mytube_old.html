@@ -1,0 +1,181 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+<body>
+<div class="container mt-5">
+    <h1 class="text-center">{{ title }} ({{ count }})</h1>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for video in videos %}
+        <div class="col">
+            <div class="card h-100">
+                <div class="position-relative">
+                    <a href="{{ url_for('mytube_blueprint.video', video_id=video.id) }}">
+                        <img src="{{ url_for('mytube_blueprint.display_thumbnail', video_id=video.id) }}" class="card-img-top" alt="Thumbnail">
+                    </a>
+                    <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;{{ convert_seconds_to_hms(video.duration) }}&nbsp;</strong></p>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('mytube_blueprint.video', video_id=video.id) }}">
+                        <h5 class="card-title">{{ video.title }}</h5>
+                    </a>
+                    <p class="card-text">Channel: {{ video.channel }}</p>
+
+                    <!-- Watched, Deleted and To Download status with icon -->
+                    <span class="card-text" id="watched-status" data-video-id="{{ video.id }}" data-status-type="watched">
+                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'watched')" style="font-size:32px;{% if video.watched %}color:green;">visibility{% else %}">visibility_off{% endif %}</i>
+                    </span>
+                    <span class="card-text" id="deleted-status" data-video-id="{{ video.id }}" data-status-type="deleted">
+                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'deleted')" style="font-size:32px;{% if video.deleted %}color:red;">delete{% else %}">delete_forever{% endif %}</i>
+                    </span>
+                    <span class="card-text" id="downld-status" data-video-id="{{ video.id }}" data-status-type="to_download">
+                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'to_download')" style="font-size:32px;{% if video.to_download %}color:green;">download_2{% else %}">download{% endif %}</i>
+                    </span>
+
+                    <!-- Playlists Dropdown -->
+                    <div class="dropdown float-end">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown{{ video.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <!-- Playlist name or "Add to playlist" -->
+                            {% if video.playlist_id %}
+                                {% set pl_name_temp = get_playlist_name(video.playlist_id) %}
+                                {{ (pl_name_temp[:17] + '..') if pl_name_temp|length > 17 else pl_name_temp }}
+                            {% else %}
+                                 Add to playlist
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="playlistDropdown{{ video.id }}">
+                            {% for playlist in playlists %}
+                                {% if playlist.id != video.playlist_id %}
+                                    <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }})">{{ playlist.name }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+
+</body>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<!-- Bootstrap JS and Popper.js (if needed) -->
+<script src="{{ url_for('static', filename='assets/js/plugins/chartjs.min.js') }}"></script>
+
+<script>
+    const baseUrl = "{{ url_for('static', filename='') }}";
+</script>
+
+<!-- Toggle status of Watched and To_Download-->
+<script>
+    function toggleStatus(element) {
+        const videoId = element.parentElement.dataset.videoId;
+        const statusType = element.parentElement.dataset.statusType;
+
+        // Make an asynchronous request to update the status
+        fetch('{{ url_for('mytube_blueprint.update_status') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `video_id=${videoId}&status_type=${statusType}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the image source based on the new status
+                if (statusType == 'watched') {
+                    const iconName = data.new_status ? 'visibility' : 'visibility_off';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:green;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+                else if (statusType == 'deleted') {
+                    const iconName = data.new_status ? 'delete' : 'delete_forever';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:red;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+                else if (statusType == 'to_download') {
+                    const iconName = data.new_status ? 'download_2' : 'download';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:green;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+
+            } else {
+                console.error('Failed to update status.');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating status:', error);
+        });
+    }
+</script>
+
+<!-- Toggle status of Deleted-->
+<!--<script>-->
+<!--    function toggleDeleted(element) {-->
+<!--        const videoId = element.parentElement.dataset.videoId;-->
+<!--        const statusType = element.parentElement.dataset.statusType;-->
+
+<!--        // Make an asynchronous request to update the status-->
+<!--        fetch('{{ url_for('mytube_blueprint.update_status') }}', {-->
+<!--            method: 'POST',-->
+<!--            headers: {-->
+<!--                'Content-Type': 'application/x-www-form-urlencoded',-->
+<!--            },-->
+<!--            body: `video_id=${videoId}&status_type=${statusType}`,-->
+<!--        })-->
+<!--        .then(response => response.json())-->
+<!--        .then(data => {-->
+<!--            if (data.success) {-->
+<!--                // Update the image source based on the new status-->
+<!--                const imagePath = data.new_status ? 'delete-red.png' : 'delete-blue.png';-->
+<!--                element.src = baseUrl + imagePath;-->
+<!--            } else {-->
+<!--                console.error('Failed to update status.');-->
+<!--            }-->
+<!--        })-->
+<!--        .catch(error => {-->
+<!--            console.error('Error updating status:', error);-->
+<!--        });-->
+<!--    }-->
+<!--</script>-->
+
+<!-- Add video to the playlist -->
+<script>
+    function addToPlaylist(videoId, playlistId) {
+        // Make an asynchronous request to update the playlist
+        fetch('{{ url_for('mytube_blueprint.add_to_playlist') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `video_id=${videoId}&playlist_id=${playlistId}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Video added to playlist successfully!');
+            } else {
+                alert('Failed to add video to playlist.');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding video to playlist:', error);
+        });
+    }
+</script>
+
+{% endblock javascripts %}

@@ -36,7 +36,7 @@ services:
       - db_network
       - web_network
     volumes:
-      - /home/dolph/happy-quokka/videos:/static/assets/videos
+      - /home/dolph/happy-quokka/videos:/apps/static/assets/videos
 #      - ../env.docker:/.env
 
 

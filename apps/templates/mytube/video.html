@@ -7,38 +7,41 @@
 
 {% block content %}
 
-    <div class="card">
+<div class="card">
     <!-- Video Header with Embedded YouTube Video -->
     <div class="card-header text-center">
-        {% set embedded_url = video.url.replace('https://www.youtube.com/watch?v=', 'https://www.youtube.com/embed/') %}
-        <iframe width="560" height="315" src="{{ embedded_url }}" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+        {% if video.file_exist %}
+            <video id="myVideo" width="320" height="240" controls>
+                <source src="{{ video.path }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        {% else %}
+            {% set embedded_url = video.url.replace('https://www.youtube.com/watch?v=', 'https://www.youtube.com/embed/') %}
+            <iframe width="560" height="315" src="{{ embedded_url }}" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+        {% endif %}
     </div>
+
+    <!-- Video Title -->
+    <h1 class="card-title text-black">{{ video.title }}</h1>
 
     <!-- Video Body -->
     <div class="card-body text-dark">
-        <!-- Watched, To Download, and Deleted Icons -->
-        <div class="float-end">
-            <span class="card-text" id="watched-status" data-video-id="{{ video.id }}" data-status-type="watched">
-                Watched:
-                <img class="status-icon" onclick="toggleStatus(this, 'watched')" src="{% if video.watched %}{{ url_for('static', filename='tick-green.png') }}{% else %}{{ url_for('static', filename='tick-white.png') }}{% endif %}">
-            </span>
-            <span class="card-text" id="download-status" data-video-id="{{ video.id }}" data-status-type="to_download">
-                To Download: <img class="status-icon" onclick="toggleStatus(this, 'to_download')" src="{% if video.to_download %}{{ url_for('static', filename='tick-green.png') }}{% else %}{{ url_for('static', filename='tick-white.png') }}{% endif %}">
-            </span>
-            <span class="card-text" id="deleted-status" data-video-id="{{ video.id }}" data-status-type="deleted">
-                Deleted:
-                <img class="status-icon" onclick="toggleDeleted(this, 'deleted')" src="{% if video.deleted %}{{ url_for('static', filename='delete-red.png') }}{% else %}{{ url_for('static', filename='delete-blue.png') }}{% endif %}">
-            </span>
-        </div>
-
+        <div style="display: flex; justify-content: flex-start; align-items: center;">
         <!-- Playlists Dropdown -->
-        <div class="dropdown float-end">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                Add to Playlist
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown{{ video.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <!-- Playlist name or "Add to playlist" -->
+                {% if video.playlist_id %}
+                    {{ (video.playlist_name[:50] + '..') if video.playlist_name|length > 50 else video.playlist_name }}
+                {% else %}
+                     Add to playlist
+                {% endif %}
             </button>
-            <ul class="dropdown-menu" aria-labelledby="playlistDropdown">
+            <ul class="dropdown-menu" aria-labelledby="playlistDropdown{{ video.id }}">
                 {% for playlist in playlists %}
-                <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }})">{{ playlist.name }}</a></li>
+                    {% if playlist.id != video.playlist_id %}
+                        <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }})">{{ playlist.name }}</a></li>
+                    {% endif %}
                 {% endfor %}
             </ul>
         </div>
@@ -50,26 +53,44 @@
             </button>
         {% endif %}
 
+
+        <!-- Watched, To Download, and Deleted Icons -->
+<!--            <div class="float-end">-->
+        <div class="">
+            <span class="card-text" id="watched-status" data-video-id="{{ video.id }}" data-status-type="watched">
+                <i class="material-icons opacity-10" onclick="toggleStatus(this, 'watched')" style="font-size:32px;{% if video.watched %}color:green;">visibility{% else %}">visibility_off{% endif %}</i>
+            </span>
+            <span class="card-text" id="deleted-status" data-video-id="{{ video.id }}" data-status-type="deleted">
+                <i class="material-icons opacity-10" onclick="toggleStatus(this, 'deleted')" style="font-size:32px;{% if video.deleted %}color:red;">delete{% else %}">delete_forever{% endif %}</i>
+            </span>
+            <span class="card-text" id="download-status" data-video-id="{{ video.id }}" data-status-type="to_download">
+                <i class="material-icons opacity-10" onclick="toggleStatus(this, 'to_download')" style="font-size:32px;{% if video.to_download %}color:green;">download_for_offline{% else %}">download{% endif %}</i>
+            </span>
+            {% if video.file_exist %}
+                <span class="card-text">
+                    <i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i>
+                </span>
+            {% endif %}
+        </div>
+        </div>
+
         <!-- Chapters Collapse Content -->
         <div class="collapse" id="chaptersCollapse">
             <div class="card card-body">
                 <!-- Display Chapters Here -->
                 {% for chapter in chapters %}
-                    <p>{{ convert_seconds_to_hms(chapter.start) }} - {{ chapter.name }}</p>
+                <p><a href="#" onclick="rewindToTime({{ chapter.start }})">{{ convert_seconds_to_hms(chapter.start) }}</a> - {{ chapter.name }}</p>
                 {% endfor %}
             </div>
         </div>
 
-        <!-- Video Title -->
-        <h1 class="card-title text-black">{{ video.title }}</h1>
-
         <!-- Video Description -->
-        <p class="card-text text-dark">Description:</p>
+        <h3 class="card-text text-dark">Description:</h3>
         {% for line in video.description.split('\n') %}
             <p class="card-text text-dark">{{ line }}</p>
         {% endfor %}
 
-    </div>
+     </div>
 </div>
 
 
@@ -103,38 +124,25 @@
         .then(data => {
             if (data.success) {
                 // Update the image source based on the new status
-                const imagePath = data.new_status ? 'tick-green.png' : 'tick-white.png';
-                element.src = baseUrl + imagePath;
-            } else {
-                console.error('Failed to update status.');
-            }
-        })
-        .catch(error => {
-            console.error('Error updating status:', error);
-        });
-    }
-</script>
+                if (statusType == 'watched') {
+                    const iconName = data.new_status ? 'visibility' : 'visibility_off';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:green;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+                else if (statusType == 'deleted') {
+                    const iconName = data.new_status ? 'delete' : 'delete_forever';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:red;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+                else if (statusType == 'to_download') {
+                    const iconName = data.new_status ? 'download_for_offline' : 'download';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:green;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
 
-<!-- Toggle status of Deleted-->
-<script>
-    function toggleDeleted(element) {
-        const videoId = element.parentElement.dataset.videoId;
-        const statusType = element.parentElement.dataset.statusType;
-
-        // Make an asynchronous request to update the status
-        fetch('{{ url_for('mytube_blueprint.update_status') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `video_id=${videoId}&status_type=${statusType}`,
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Update the image source based on the new status
-                const imagePath = data.new_status ? 'delete-red.png' : 'delete-blue.png';
-                element.src = baseUrl + imagePath;
             } else {
                 console.error('Failed to update status.');
             }
@@ -169,6 +177,97 @@
         });
     }
 </script>
+
+<script>
+var video = document.getElementById("myVideo");
+var videoId = {{ video.id }};
+var interval;
+
+video.addEventListener("play", function() {
+    // Start the interval when the video is played
+    interval = setInterval(function() {
+        // Get the current time in seconds
+        var currentTime = video.currentTime;
+
+        // Make an asynchronous request to update the playback time in the database
+        updatePlaybackTime(videoId, currentTime);
+    }, 5000);  // Set the interval to 5000 milliseconds (5 seconds)
+});
+
+video.addEventListener("pause", function() {
+    // Stop the interval when the video is paused
+    clearInterval(interval);
+});
+
+function updatePlaybackTime(videoId, currentTime) {
+    // Make an asynchronous POST request to the Flask route
+    fetch('{{ url_for("mytube_blueprint.update_playback_time") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `video_id=${videoId}&current_time=${currentTime}`,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Playback time updated successfully.');
+        } else {
+            console.error('Failed to update playback time.');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating playback time:', error);
+    });
+}
+
+
+
+
+
+
+
+// Function to initialize video position based on stored position in the database
+function initializeVideoPosition(video, videoId) {
+    // Make an asynchronous request to get the stored playback time from the database
+    fetch('{{ url_for("mytube_blueprint.get_playback_time", video_id=video.id) }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Set the current time of the video to the stored position
+                video.currentTime = data.playback_time;
+            } else {
+                console.error('Failed to get playback time from the database.');
+            }
+        })
+        .catch(error => {
+            console.error('Error getting playback time:', error);
+        });
+}
+
+// Event listener for when the DOM content is fully loaded
+document.addEventListener("DOMContentLoaded", function() {
+    var video = document.getElementById("myVideo");
+    var videoId = {{ video.id }};
+
+    // Call the function to initialize the video position
+    initializeVideoPosition(video, videoId);
+});
+
+
+
+
+
+function rewindToTime(time) {
+        var video = document.getElementById('myVideo');
+        if (video) {
+            video.currentTime = time;
+        } else {
+            console.error('Video element not found.');
+        }
+    }
+</script>
+
 
 {% endblock javascripts %}
 

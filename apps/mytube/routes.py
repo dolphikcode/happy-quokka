@@ -38,7 +38,7 @@ def prepare_videos(vids, arguments, title):
                 continue
         # Check if downloaded file exists
         file_found = False
-        fname = os.path.join(video_folder, f'{json.loads(v.title)}.mp4')
+        fname = os.path.join(video_folder, f'{v.youtube_id}.mp4')
         if (os.path.isfile(fname)):
             file_found = True
         if arguments.get('ff'):
@@ -47,13 +47,14 @@ def prepare_videos(vids, arguments, title):
 
         processed_video = {
             'id': v.id,
+            'youtube_id': v.youtube_id,
             'user_id': v.user_id,
             'title': json.loads(v.title),
             'url': v.url,
             'description': json.loads(v.description),
             'channel': v.channel,
             # channel_url - skip
-            # thumbnail - reading from DB by loading page
+            'thumbnail': url_for('static', filename=f'thumbs/{v.youtube_id}.jpg'),
             'duration': convert_seconds_to_hms(v.duration),
             'watched': v.watched,
             'deleted': v.deleted,
@@ -232,12 +233,42 @@ def mytube_playlist(playlist_id):
 def video(video_id):
     video = db.session.get(Video, video_id)
     chapters = db.session.scalars(db.select(Chapter).filter_by(movie_id=video_id)).all()
+    video_folder = current_app.config['VIDEO_ROOT']
 
+    # Check if downloaded file exists
+    file_found = False
+    fname = os.path.join(video_folder, f'{video.youtube_id}.mp4')
+    if (os.path.isfile(fname)):
+        file_found = True
+
+    processed_video = {
+        'id': video.id,
+        'youtube_id': video.youtube_id,
+        'user_id': video.user_id,
+        'title': json.loads(video.title),
+        'url': video.url,
+        'description': json.loads(video.description),
+        'channel': video.channel,
+        # channel_url - skip
+        'path': url_for('static', filename=f'videos/{video.youtube_id}.mp4'),
+        'duration': convert_seconds_to_hms(video.duration),
+        'watched': video.watched,
+        'deleted': video.deleted,
+        'to_download': video.to_download,
+        'file_exist': file_found,
+        'release_date': convert_int_date_to_iso(video.release_date),
+        'created': video.created,
+        'modified': video.modified,
+        'comment': video.comment,
+        'rate': video.rate,
+        'playlist_id': video.playlist_id,
+        'playlist_name': get_playlist_name(video.playlist_id),
+    }
     # Check if video downloaded
     # json.loads(chapter.name)   !!!
 
     return render_template('mytube/video.html',
-                           video=video,
+                           video=processed_video,
                            chapters=chapters,
                            playlists=get_playlists(),
                            convert_seconds_to_hms=convert_seconds_to_hms,
@@ -283,10 +314,10 @@ def get_playlist_name(playlist_id):
 @blueprint.route('/video_thumbnail/<int:video_id>')
 @login_required
 def display_thumbnail(video_id):
-    video = Video.query.get(video_id)
+    vid = Video.query.get(video_id)
 
-    if video and video.thumbnail:
-        return send_file(BytesIO(video.thumbnail), mimetype='image/jpeg')
+    if vid and vid.thumbnail:
+        return send_file(BytesIO(vid.thumbnail), mimetype='image/jpeg')
     else:
         # You can provide a default image or a placeholder if thumbnail is not available
         return send_file('path/to/default_thumbnail.jpg', mimetype='image/jpeg')
@@ -423,29 +454,53 @@ def sort2number(txt):
             rtrn = 0
     return rtrn
 
-def encode_specific_characters(s, encoding='utf-16'):
-    result = ''
-    i = 0
+@blueprint.route('/update_playback_time', methods=['POST'])
+def update_playback_time():
+    video_id = request.form.get('video_id')
+    current_time = request.form.get('current_time')
 
-    while i < len(s):
-        char = s[i]
+    video = db.session.get(Video, video_id)
+    video.video_position = current_time
+    db.session.commit()
 
-        # Check if the character is a high surrogate
-        if 0xD800 <= ord(char) <= 0xDBFF:
-            # Check if there is a following low surrogate
-            if i + 1 < len(s):
-                next_char = s[i + 1]
-                if 0xDC00 <= ord(next_char) <= 0xDFFF:
-                    # Encode the surrogate pair
-                    encoded_chars = char + next_char
-                    encoded_chars_bytes = encoded_chars.encode(encoding)
-                    result += encoded_chars_bytes.decode('utf-16')  # Decode to replace the original characters
-                    i += 2  # Skip the low surrogate
-                    continue
+    return jsonify({'success': True})
 
-        # Keep the character unchanged
-        result += char
-        i += 1
+@blueprint.route('/get_playback_time/<int:video_id>')
+def get_playback_time(video_id):
+    try:
+        # Fetch the video object and its playback time
+        video = db.session.get(Video, video_id)
+        playback_time = video.video_position
 
-    print(result)
-    return result
+        # Return the playback time as JSON
+        return jsonify({'success': True, 'playback_time': playback_time})
+    except Exception as e:
+        # Handle the exception and return an error response
+        return jsonify({'success': False, 'error': str(e)})
+
+# def encode_specific_characters(s, encoding='utf-16'):
+#     result = ''
+#     i = 0
+#
+#     while i < len(s):
+#         char = s[i]
+#
+#         # Check if the character is a high surrogate
+#         if 0xD800 <= ord(char) <= 0xDBFF:
+#             # Check if there is a following low surrogate
+#             if i + 1 < len(s):
+#                 next_char = s[i + 1]
+#                 if 0xDC00 <= ord(next_char) <= 0xDFFF:
+#                     # Encode the surrogate pair
+#                     encoded_chars = char + next_char
+#                     encoded_chars_bytes = encoded_chars.encode(encoding)
+#                     result += encoded_chars_bytes.decode('utf-16')  # Decode to replace the original characters
+#                     i += 2  # Skip the low surrogate
+#                     continue
+#
+#         # Keep the character unchanged
+#         result += char
+#         i += 1
+#
+#     print(result)
+#     return result

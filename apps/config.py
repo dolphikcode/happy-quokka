@@ -37,6 +37,7 @@ class Config(object):
     print(DB_PORT)
     print(ASSETS_ROOT)
     print(VIDEO_ROOT)
+    print(basedir)
 
     # try to set up a Relational DBMS
     if DB_ENGINE and DB_NAME and DB_USERNAME:

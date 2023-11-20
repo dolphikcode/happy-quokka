@@ -7,3 +7,7 @@ __pycache__
 # Dolph
 initfile.sql
 .idea
+.stignore
+temp/
+apps/static/videos/*
+apps/static/thumbs/*

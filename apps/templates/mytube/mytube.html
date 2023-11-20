@@ -95,7 +95,8 @@
                 <div class="position-relative">
                     <!-- Video thumbnail -->
                     <a href="{{ url_for('mytube_blueprint.video', video_id=video.id) }}">
-                        <img src="{{ url_for('mytube_blueprint.display_thumbnail', video_id=video.id) }}" class="card-img-top" alt="Thumbnail">
+<!--                        <img src="{{ url_for('mytube_blueprint.display_thumbnail', video_id=video.id) }}" class="card-img-top" alt="Thumbnail">-->
+                        <img src="{{ video.thumbnail }}" class="card-img-top" alt="Thumbnail">
                     </a>
                     <!-- Video duration -->
                     <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;{{ video.duration }}&nbsp;</strong></p>

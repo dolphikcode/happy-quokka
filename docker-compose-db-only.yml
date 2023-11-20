@@ -28,32 +28,6 @@ services:
       - db
 
 
-  happy-quokka:
-    container_name: happy-quokka
-    restart: always
-    build: .
-    networks:
-      - db_network
-      - web_network
-    volumes:
-      - /home/dolph/happy-quokka/videos:/apps/static/videos
-      - /home/dolph/happy-quokka/thumbs:/apps/static/thumbs
-#      - ../env.docker:/.env
-
-
-  nginx:
-    container_name: nginx
-    restart: always
-    image: "nginx:latest"
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/happyquokka.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - web_network
-    depends_on:
-      - happy-quokka
-
 networks:
   db_network:
 #    external: true

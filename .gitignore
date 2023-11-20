@@ -35,3 +35,7 @@ apps/static/assets/.temp
 .env
 production.env
 initfile.sql
+.stignore
+temp/
+videos/
+thumbs/

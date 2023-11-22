@@ -36,6 +36,8 @@ apps/static/assets/.temp
 production.env
 initfile.sql
 .stignore
+.stfolder/
+.idea/
 temp/
 videos/
 thumbs/

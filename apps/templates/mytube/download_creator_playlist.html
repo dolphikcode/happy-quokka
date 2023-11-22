@@ -1,0 +1,56 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Dashboard {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <h1>Download Creator Playlist</h1>
+     <form method="post" action="{{ url_for('mytube_blueprint.download_creator_playlist') }}" class="needs-validation" novalidate>
+        <div class="form-group">
+            <p>Select Creator's Playlist:</p>
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Choose playlist
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="playlistDropdown">
+                {% for playlist in playlists %}
+                    <li><a class="dropdown-item playlist-item" href="#" data-playlist-id="{{ playlist.id }}">{{ playlist.playlist_name }}</a></li>
+                {% endfor %}
+            </ul>
+            <input type="hidden" name="playlist_id" id="selectedPlaylistId">
+        </div>
+
+        <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" name="add_to_database" id="add_to_database">
+            <label class="form-check-label" for="add_to_database">Add to Database</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Download</button>
+    </form>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<!-- Bootstrap JS and Popper.js (if needed) -->
+<script src="{{ url_for('static', filename='assets/js/plugins/chartjs.min.js') }}"></script>
+
+<script>
+    const baseUrl = "{{ url_for('static', filename='') }}";
+</script>
+
+<script>
+    // JavaScript to handle playlist selection
+    document.querySelectorAll('.playlist-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.getElementById('playlistDropdown').innerText = this.innerText;
+            document.getElementById('selectedPlaylistId').value = this.dataset.playlistId;
+        });
+    });
+</script>
+
+{% endblock javascripts %}
+

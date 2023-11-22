@@ -22,7 +22,7 @@
     </div>
 
     <!-- Video Title -->
-    <h1 class="card-title text-black">{{ video.title }}</h1>
+    <h3 class="card-title text-black">{{ video.title }}</h3>
 
     <!-- Video Body -->
     <div class="card-body text-dark">
@@ -79,13 +79,13 @@
             <div class="card card-body">
                 <!-- Display Chapters Here -->
                 {% for chapter in chapters %}
-                <p><a href="#" onclick="rewindToTime({{ chapter.start }})">{{ convert_seconds_to_hms(chapter.start) }}</a> - {{ chapter.name }}</p>
+                    <p><a href="#" onclick="rewindToTime({{ chapter.start }})">{{ convert_seconds_to_hms(chapter.start) }}</a> - {{ chapter.name }}</p>
                 {% endfor %}
             </div>
         </div>
 
         <!-- Video Description -->
-        <h3 class="card-text text-dark">Description:</h3>
+        <h4 class="card-text text-dark">Description:</h4>
         {% for line in video.description.split('\n') %}
             <p class="card-text text-dark">{{ line }}</p>
         {% endfor %}

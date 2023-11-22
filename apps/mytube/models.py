@@ -6,6 +6,18 @@ from sqlalchemy import func
 from apps import db
 from datetime import datetime
 
+
+class YTLogs(db.Model):
+    __tablename__ = 'YT_Logs'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    from_module = db.Column(db.String(24), nullable=False)
+    text = db.Column(db.String(2048), nullable=False)
+    user_id = db.Column(db.Integer, nullable=False)
+    created = db.Column(db.DateTime, default=func.now())
+    modified = db.Column(db.DateTime, default=func.now())
+    uuid = db.Column(db.String(36), nullable=False)
+
 class Playlist(db.Model):
     __tablename__ = 'YT_Playlist'
 

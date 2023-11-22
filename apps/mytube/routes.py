@@ -4,6 +4,7 @@ Copyright (c) 2019 - present AppSeed.us
 """
 import json
 
+import requests
 from sqlalchemy import func, desc
 
 from apps.mytube import blueprint
@@ -90,9 +91,17 @@ def prepare_videos(vids, arguments, title):
 @blueprint.route('/')
 @login_required
 def mytube():
+    return render_template('mytube/mytube.html',
+                           segment='mytube',
+                           playlists=get_playlists(),
+                           )
+
+@blueprint.route('/videos')
+@login_required
+def videos():
     arguments = request.args
     deleted = str2bool(arguments.get('trash')) if arguments.get('trash') else False
-    segment = 'yt_trash' if arguments.get('trash') else 'mytube'
+    segment = 'yt_trash' if arguments.get('trash') else 'videos'
     # Sort videos
     column = 'created'
     order = 'asc'
@@ -118,21 +127,11 @@ def mytube():
                 .order_by(getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
               .all())
 
-    return render_template('mytube/mytube.html',
+    return render_template('mytube/videos.html',
                            data=prepare_videos(videos, arguments, "All Videos"),
                            segment=segment,
                            playlists=get_playlists(),
                            )
-
-    # return render_template('mytube/mytube.html',
-    #                        title="All Videos",
-    #                        segment='mytube',
-    #                        count=len(videos),
-    #                        videos=videos,
-    #                        playlists=get_playlists(),
-    #                        convert_seconds_to_hms=convert_seconds_to_hms,
-    #                        convert_int_date_to_iso=convert_int_date_to_iso,
-    #                        get_playlist_name=get_playlist_name)
 
 
 @blueprint.route('/playlist/<int:playlist_id>')
@@ -168,12 +167,12 @@ def mytube_playlist(playlist_id):
     playlist.last_used = func.now()
     db.session.commit()
 
-    return render_template('mytube/mytube.html',
+    return render_template('mytube/videos.html',
                            data=prepare_videos(videos, arguments, playlist.name),
                            segment=playlist.name,
                            playlists=get_playlists(),
                            )
-    # return render_template('mytube/mytube.html',
+    # return render_template('mytube/videos.html',
     #                        title=playlist.name,
     #                        segment=playlist.name,
     #                        videos=videos,
@@ -213,11 +212,11 @@ def mytube_playlist(playlist_id):
 #                 .order_by(getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
 #               .all())
 #
-#     return render_template('mytube/mytube.html',
+#     return render_template('mytube/videos.html',
 #                            data=prepare_videos(videos, arguments, "Deleted Videos", 'yt_trash'),
 #                            playlists=get_playlists(),
 #                            )
-    # return render_template('mytube/mytube.html',
+    # return render_template('mytube/videos.html',
     #                        title="Deleted Videos",
     #                        segment='yt_trash',
     #                        videos=videos,
@@ -478,29 +477,31 @@ def get_playback_time(video_id):
         # Handle the exception and return an error response
         return jsonify({'success': False, 'error': str(e)})
 
-# def encode_specific_characters(s, encoding='utf-16'):
-#     result = ''
-#     i = 0
-#
-#     while i < len(s):
-#         char = s[i]
-#
-#         # Check if the character is a high surrogate
-#         if 0xD800 <= ord(char) <= 0xDBFF:
-#             # Check if there is a following low surrogate
-#             if i + 1 < len(s):
-#                 next_char = s[i + 1]
-#                 if 0xDC00 <= ord(next_char) <= 0xDFFF:
-#                     # Encode the surrogate pair
-#                     encoded_chars = char + next_char
-#                     encoded_chars_bytes = encoded_chars.encode(encoding)
-#                     result += encoded_chars_bytes.decode('utf-16')  # Decode to replace the original characters
-#                     i += 2  # Skip the low surrogate
-#                     continue
-#
-#         # Keep the character unchanged
-#         result += char
-#         i += 1
-#
-#     print(result)
-#     return result
+
+@blueprint.route('/download_creator_playlist', methods=['GET', 'POST'])
+def download_creator_playlist():
+    if request.method == 'POST':
+        playlist_id = request.form.get('playlist_id')
+        add_to_database = request.form.get('add_to_database')
+
+        # Check if the "Add to database" checkbox is checked
+        if add_to_database:
+            to_database = 1
+        else:
+            to_database = 0
+        # Call the API with playlist_id and add_to_database
+        api_url = f'http://happy-api:5000/get_info/{playlist_id}/{str(to_database)}'
+        print(api_url)
+        # Make the API request here using your preferred method (e.g., requests library)
+
+        # Example using the requests library
+        response = requests.get(api_url)
+        if response.status_code == 200:
+            print(response)
+        else:
+            print(response)
+
+        return redirect(url_for('home_blueprint.index'))  # Redirect to the home page or another page after processing
+
+    playlists = CreatorPlaylist.query.all()
+    return render_template('mytube/download_creator_playlist.html', playlists=playlists)

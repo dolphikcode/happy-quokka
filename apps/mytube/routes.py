@@ -47,12 +47,11 @@ def prepare_videos(vids, arguments, title):
                 continue
 
         playlist = get_playlist(v.playlist_uuid)
-        print(playlist.name)
 
         processed_video = {
             'id': v.id,
             'youtube_id': v.youtube_id,
-            'user_id': v.user_id,
+            'user_uuid': v.user_uuid,
             'title': json.loads(v.title),
             'url': v.url,
             'description': json.loads(v.description),
@@ -69,6 +68,7 @@ def prepare_videos(vids, arguments, title):
             'modified': v.modified,
             'comment': v.comment,
             'rate': v.rate,
+            'uuid': v.uuid,
             'playlist_id': playlist.id,
             'playlist_name': playlist.name,
         }
@@ -161,7 +161,7 @@ def mytube_playlist(playlist_uuid):
             column = 'created'
             order = 'asc'
     videos = (db.session.scalars(db.select(Video)
-                .filter_by(user_id=current_user.id)
+                .filter_by(user_uuid=current_user.uuid)
                 .filter_by(playlist_uuid=playlist_uuid, deleted=False)
                 .order_by(getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
               .all())
@@ -186,11 +186,12 @@ def mytube_playlist(playlist_uuid):
     #                        get_playlist_name=get_playlist_name)
 
 
-@blueprint.route('/video/<int:video_id>')
+@blueprint.route('/video/<video_uuid>')
 @login_required
-def video(video_id):
-    video = db.session.get(Video, video_id)
-    chapters = db.session.scalars(db.select(Chapter).filter_by(movie_id=video_id)).all()
+def video(video_uuid):
+    video = db.session.scalars(db.select(Video).filter_by(uuid=video_uuid)).first()
+    chapters = db.session.scalars(db.select(Chapter).filter_by(movie_uuid=video_uuid)).all()
+    playlist = get_playlist(video.playlist_uuid)
     video_folder = current_app.config['VIDEO_ROOT']
 
     # Check if downloaded file exists
@@ -202,7 +203,7 @@ def video(video_id):
     processed_video = {
         'id': video.id,
         'youtube_id': video.youtube_id,
-        'user_id': video.user_id,
+        'user_uuid': video.user_uuid,
         'title': json.loads(video.title),
         'url': video.url,
         'description': json.loads(video.description),
@@ -219,8 +220,8 @@ def video(video_id):
         'modified': video.modified,
         'comment': video.comment,
         'rate': video.rate,
-        'playlist_id': video.playlist_id,
-        'playlist_name': get_playlist_name(video.playlist_id),
+        'playlist_id': playlist.id,
+        'playlist_name': playlist.name,
     }
     # Check if video downloaded
     # json.loads(chapter.name)   !!!

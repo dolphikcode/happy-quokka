@@ -25,7 +25,6 @@ class Playlist(db.Model):
     user_uuid = db.Column(db.String(36), nullable=False)
     name = db.Column(db.String(48), nullable=False)
     last_used = db.Column(db.DateTime, default=func.now())
-    user_id = db.Column(db.Integer, nullable=False)
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)

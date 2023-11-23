@@ -94,7 +94,7 @@
             <div class="card h-100">
                 <div class="position-relative">
                     <!-- Video thumbnail -->
-                    <a href="{{ url_for('mytube_blueprint.video', video_id=video.id) }}">
+                    <a href="{{ url_for('mytube_blueprint.video', video_uuid=video.uuid) }}">
 <!--                        <img src="{{ url_for('mytube_blueprint.display_thumbnail', video_id=video.id) }}" class="card-img-top" alt="Thumbnail">-->
                         <img src="{{ video.thumbnail }}" class="card-img-top" alt="Thumbnail">
                     </a>
@@ -102,7 +102,7 @@
                     <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;{{ video.duration }}&nbsp;</strong></p>
                 </div>
                 <div class="card-body">
-                    <a href="{{ url_for('mytube_blueprint.video', video_id=video.id) }}">
+                    <a href="{{ url_for('mytube_blueprint.video', video_uuid=video.uuid) }}">
                         <h6 class="card-title">{% autoescape off %}{{ video.title }}{% endautoescape %}</h6>
                     </a>
                     <p class="card-text">
@@ -139,7 +139,7 @@
                             <ul class="dropdown-menu" aria-labelledby="playlistDropdown{{ video.id }}">
                                 {% for playlist in playlists %}
                                     {% if playlist.id != video.playlist_id %}
-                                        <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }})">{{ playlist.name }}</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }}, '{{ playlist.name }}')">{{ playlist.name }}</a></li>
                                     {% endif %}
                                 {% endfor %}
                             </ul>
@@ -302,7 +302,8 @@
 
 <!-- Add video to the playlist -->
 <script>
-    function addToPlaylist(videoId, playlistId) {
+    function addToPlaylist(videoId, playlistId, playlistName) {
+        event.preventDefault();  // Prevent the default behavior of the anchor element
         // Make an asynchronous request to update the playlist
         fetch('{{ url_for('mytube_blueprint.add_to_playlist') }}', {
             method: 'POST',
@@ -314,7 +315,10 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Video added to playlist successfully!');
+                var buttonName = "playlistDropdown"+videoId;
+                var playlistButton = document.getElementById(buttonName);
+                playlistButton.textContent = playlistName;
+                // alert('Video added to playlist successfully!');
             } else {
                 alert('Failed to add video to playlist.');
             }

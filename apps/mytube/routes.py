@@ -46,6 +46,9 @@ def prepare_videos(vids, arguments, title):
             if file_found != str2bool(arguments.get('ff')):
                 continue
 
+        playlist = get_playlist(v.playlist_uuid)
+        print(playlist.name)
+
         processed_video = {
             'id': v.id,
             'youtube_id': v.youtube_id,
@@ -66,8 +69,8 @@ def prepare_videos(vids, arguments, title):
             'modified': v.modified,
             'comment': v.comment,
             'rate': v.rate,
-            'playlist_id': v.playlist_id,
-            'playlist_name': get_playlist_name(v.playlist_id),
+            'playlist_id': playlist.id,
+            'playlist_name': playlist.name,
         }
         videos.append(processed_video)
 
@@ -101,7 +104,7 @@ def mytube():
 def videos():
     arguments = request.args
     deleted = str2bool(arguments.get('trash')) if arguments.get('trash') else False
-    segment = 'yt_trash' if arguments.get('trash') else 'videos'
+    segment = 'yt_trash' if arguments.get('trash') == 'true' else 'videos'
     # Sort videos
     column = 'created'
     order = 'asc'
@@ -122,7 +125,7 @@ def videos():
             column = 'created'
             order = 'asc'
     videos = (db.session.scalars(db.select(Video)
-                .filter_by(user_id=current_user.id)
+                .filter_by(user_uuid=current_user.uuid)
                 .filter_by(deleted=deleted)
                 .order_by(getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
               .all())
@@ -134,9 +137,9 @@ def videos():
                            )
 
 
-@blueprint.route('/playlist/<int:playlist_id>')
+@blueprint.route('/playlist/<playlist_uuid>')
 @login_required
-def mytube_playlist(playlist_id):
+def mytube_playlist(playlist_uuid):
     arguments = request.args
     # Sort videos
     column = 'created'
@@ -159,11 +162,11 @@ def mytube_playlist(playlist_id):
             order = 'asc'
     videos = (db.session.scalars(db.select(Video)
                 .filter_by(user_id=current_user.id)
-                .filter_by(playlist_id=playlist_id, deleted=False)
+                .filter_by(playlist_uuid=playlist_uuid, deleted=False)
                 .order_by(getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
               .all())
 
-    playlist = db.session.get(Playlist, playlist_id)
+    playlist = Playlist.query.filter_by(uuid=playlist_uuid).first()
     playlist.last_used = func.now()
     db.session.commit()
 
@@ -175,50 +178,6 @@ def mytube_playlist(playlist_id):
     # return render_template('mytube/videos.html',
     #                        title=playlist.name,
     #                        segment=playlist.name,
-    #                        videos=videos,
-    #                        count=len(videos),
-    #                        playlists=get_playlists(),
-    #                        convert_seconds_to_hms=convert_seconds_to_hms,
-    #                        convert_int_date_to_iso=convert_int_date_to_iso,
-    #                        get_playlist_name=get_playlist_name)
-
-
-# @blueprint.route('/trash')
-# @login_required
-# def mytube_trash():
-#     arguments = request.args
-#     # Sort videos
-#     column = 'created'
-#     order = 'asc'
-#     match arguments.get('sort'):
-#         case "-1":
-#             column = 'release_date'
-#             order = 'asc'
-#         case "-2":
-#             column = 'release_date'
-#             order = 'desc'
-#         case "0":
-#             column = 'created'
-#             order = 'asc'
-#         case "1":
-#             column = 'created'
-#             order = 'desc'
-#         case _:
-#             column = 'created'
-#             order = 'asc'
-#     videos = (db.session.scalars(db.select(Video)
-#                 .filter_by(user_id=current_user.id)
-#                 .filter_by(deleted=True)
-#                 .order_by(getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
-#               .all())
-#
-#     return render_template('mytube/videos.html',
-#                            data=prepare_videos(videos, arguments, "Deleted Videos", 'yt_trash'),
-#                            playlists=get_playlists(),
-#                            )
-    # return render_template('mytube/videos.html',
-    #                        title="Deleted Videos",
-    #                        segment='yt_trash',
     #                        videos=videos,
     #                        count=len(videos),
     #                        playlists=get_playlists(),
@@ -299,6 +258,15 @@ def edit_playlist(playlist_id):
 def get_playlists():
     playlists = db.session.scalars(db.select(Playlist).order_by(desc(Playlist.last_used))).all()
     return playlists
+
+
+def get_playlist(movie_uuid):
+    if movie_uuid:
+        playlist = Playlist.query.filter_by(uuid=movie_uuid).first()
+    else:
+        playlist = Playlist()
+        playlist.id = 0
+    return playlist
 
 
 def get_playlist_name(playlist_id):
@@ -406,7 +374,7 @@ def add_to_playlist():
         # Check if both video and playlist exist
         if video is not None and playlist is not None:
             # Add the video to the playlist
-            video.playlist_id = playlist_id
+            video.playlist_uuid = playlist.uuid
 
             # Update last modified date
             video.modified = func.now()
@@ -481,7 +449,10 @@ def get_playback_time(video_id):
 @blueprint.route('/download_creator_playlist', methods=['GET', 'POST'])
 def download_creator_playlist():
     if request.method == 'POST':
+        playlist_id = ''
         playlist_id = request.form.get('playlist_id')
+        if playlist_id=='' or playlist_id==None:
+            playlist_id = '0'
         add_to_database = request.form.get('add_to_database')
 
         # Check if the "Add to database" checkbox is checked
@@ -490,7 +461,7 @@ def download_creator_playlist():
         else:
             to_database = 0
         # Call the API with playlist_id and add_to_database
-        api_url = f'http://happy-api:5000/get_info/{playlist_id}/{str(to_database)}'
+        api_url = f'http://happy-api:5000/get_info/{current_user.id}/{playlist_id}/{str(to_database)}'
         print(api_url)
         # Make the API request here using your preferred method (e.g., requests library)
 

@@ -32,6 +32,8 @@
             </div>
             <span class="nav-link-text ms-1">MyTube</span>
           </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link text-white {% if 'videos' in segment %} active bg-gradient-primary {% endif %}"
              href="{{ url_for('mytube_blueprint.videos') }}">
             <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
@@ -56,7 +58,7 @@
             {% for playlist in playlists[:2] %}
                 <li class="nav-item">
                   <a class="nav-link text-white {% if playlist.name in segment %} active bg-gradient-primary {% endif %}"
-                     href="{{ url_for('mytube_blueprint.mytube_playlist', playlist_id=playlist.id) }}">
+                     href="{{ url_for('mytube_blueprint.mytube_playlist', playlist_uuid=playlist.uuid) }}">
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                       <i class="material-icons opacity-10">queue_music</i>
                     </div>
@@ -79,7 +81,7 @@
                     {% for playlist in playlists[2:] %}
                     <li class="nav-item">
                       <a class="nav-link text-white"
-                         href="{{ url_for('mytube_blueprint.mytube_playlist', playlist_id=playlist.id) }}">
+                         href="{{ url_for('mytube_blueprint.mytube_playlist', playlist_uuid=playlist.uuid) }}">
                         <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                           <i class="material-icons opacity-10">queue_music</i>
                         </div>

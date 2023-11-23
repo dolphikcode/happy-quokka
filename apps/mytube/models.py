@@ -13,7 +13,7 @@ class YTLogs(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     from_module = db.Column(db.String(24), nullable=False)
     text = db.Column(db.String(2048), nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_uuid = db.Column(db.String(36), nullable=False)
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
@@ -22,6 +22,7 @@ class Playlist(db.Model):
     __tablename__ = 'YT_Playlist'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_uuid = db.Column(db.String(36), nullable=False)
     name = db.Column(db.String(48), nullable=False)
     last_used = db.Column(db.DateTime, default=func.now())
     user_id = db.Column(db.Integer, nullable=False)
@@ -34,16 +35,13 @@ class Chapter(db.Model):
     __tablename__ = 'YT_Chapter'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    movie_id = db.Column(db.Integer, db.ForeignKey('YT_Video.id'), nullable=False)
+    movie_uuid = db.Column(db.String(36), nullable=False)
     name = db.Column(db.String(1024), nullable=False)
     start = db.Column(db.Integer, default=0)
     end = db.Column(db.Integer, default=0)
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
-
-    # Establish a relationship with the Video model
-    movie = db.relationship('Video', backref=db.backref('YT_Chapters', lazy=True))
 
 
 class CreatorPlaylist(db.Model):
@@ -53,7 +51,7 @@ class CreatorPlaylist(db.Model):
     creator_name = db.Column(db.String(48), nullable=False)
     playlist_name = db.Column(db.String(48), nullable=False)
     url = db.Column(db.String(256), nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_uuid = db.Column(db.String(36), nullable=False)
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
@@ -64,7 +62,7 @@ class Tag(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(32), nullable=False)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_uuid = db.Column(db.String(36), nullable=False)
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
@@ -74,8 +72,8 @@ class TagVideo(db.Model):
     __tablename__ = 'YT_TagVideo'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    tag_id = db.Column(db.Integer, db.ForeignKey('YT_Tag.id'), nullable=False)
-    video_id = db.Column(db.Integer, db.ForeignKey('YT_Video.id'), nullable=False)
+    tag_uuid = db.Column(db.String(36), nullable=False)
+    video_uuid = db.Column(db.String(36), nullable=False)
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
@@ -87,7 +85,7 @@ class Video(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     youtube_id = db.Column(db.String(12), nullable=False)
     video_position = db.Column(db.Float, default=0)
-    user_id = db.Column(db.Integer, nullable=False)
+    user_uuid = db.Column(db.String(36), nullable=False)
     title = db.Column(db.String(512), nullable=False)
     url = db.Column(db.String(256), nullable=False)
     description = db.Column(db.String(10000), nullable=True)
@@ -103,6 +101,6 @@ class Video(db.Model):
     modified = db.Column(db.DateTime, default=func.now())
     comment = db.Column(db.String(1024))
     rate = db.Column(db.Integer)
-    playlist_id = db.Column(db.Integer, db.ForeignKey('YT_Playlist.id'))
+    playlist_uuid = db.Column(db.String(36))
     uuid = db.Column(db.String(36), nullable=False)
 

@@ -103,10 +103,12 @@
                 </div>
                 <div class="card-body">
                     <a href="{{ url_for('mytube_blueprint.video', video_id=video.id) }}">
-                        <h5 class="card-title">{% autoescape off %}{{ video.title }}{% endautoescape %}</h5>
+                        <h6 class="card-title">{% autoescape off %}{{ video.title }}{% endautoescape %}</h6>
                     </a>
-                    <p class="card-text">Channel: {{ video.channel }}</p>
-                    <p class="card-text">Release date: {{ video.release_date }}</p>
+                    <p class="card-text">
+                        Channel: {{ video.channel }}<br>
+                        Release date: {{ video.release_date }}
+                    </p>
 
                     <!-- Watched, Deleted and To Download status with icon -->
                     <span class="card-text" id="watched-status" data-video-id="{{ video.id }}" data-status-type="watched">

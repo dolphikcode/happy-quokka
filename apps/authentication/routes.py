@@ -14,8 +14,8 @@ from apps import db, login_manager
 from apps.authentication import blueprint
 from apps.authentication.forms import LoginForm, CreateAccountForm
 from apps.authentication.models import Users
-
 from apps.authentication.util import verify_pass
+import uuid
 
 
 @blueprint.route('/')
@@ -80,6 +80,7 @@ def register():
 
         # else we can create the user
         user = Users(**request.form)
+        user.uuid = str(uuid.uuid4())
         db.session.add(user)
         db.session.commit()
 

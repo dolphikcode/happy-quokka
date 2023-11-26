@@ -87,7 +87,7 @@ class Video(db.Model):
     user_uuid = db.Column(db.String(36), nullable=False)
     title = db.Column(db.String(512), nullable=False)
     url = db.Column(db.String(256), nullable=False)
-    description = db.Column(db.String(10000), nullable=True)
+    description = db.Column(db.String(15000), nullable=True)
     channel = db.Column(db.String(100), nullable=True)
     channel_url = db.Column(db.String(256), nullable=True)
     # thumbnail = db.Column(db.LargeBinary(length=(2 ** 32) - 1), nullable=True)

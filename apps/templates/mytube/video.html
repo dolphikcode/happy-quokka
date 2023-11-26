@@ -40,7 +40,7 @@
             <ul class="dropdown-menu" aria-labelledby="playlistDropdown{{ video.id }}">
                 {% for playlist in playlists %}
                     {% if playlist.id != video.playlist_id %}
-                        <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }})">{{ playlist.name }}</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }}, '{{ playlist.name }}')">{{ playlist.name }}</a></li>
                     {% endif %}
                 {% endfor %}
             </ul>
@@ -155,7 +155,8 @@
 
 <!-- Add video to the playlist -->
 <script>
-    function addToPlaylist(videoId, playlistId) {
+    function addToPlaylist(videoId, playlistId, playlistName) {
+        event.preventDefault();  // Prevent the default behavior of the anchor element
         // Make an asynchronous request to update the playlist
         fetch('{{ url_for('mytube_blueprint.add_to_playlist') }}', {
             method: 'POST',
@@ -167,7 +168,10 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Video added to playlist successfully!');
+                var buttonName = "playlistDropdown"+videoId;
+                var playlistButton = document.getElementById(buttonName);
+                playlistButton.textContent = playlistName;
+                // alert('Video added to playlist successfully!');
             } else {
                 alert('Failed to add video to playlist.');
             }

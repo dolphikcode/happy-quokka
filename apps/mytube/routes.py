@@ -4,6 +4,7 @@ Copyright (c) 2019 - present AppSeed.us
 """
 import json
 import uuid
+import random
 import requests
 from sqlalchemy import func, desc
 
@@ -96,7 +97,23 @@ def prepare_videos(vids, arguments, title):
 @blueprint.route('/')
 @login_required
 def mytube():
+    arguments = request.args
+    row_count = db.session.query(func.count()).select_from(Video).scalar()
+    videos = []
+
+    for i in range(1, 4):
+        random_number = random.randint(1, row_count-1)
+        video = Video.query.get(random_number)
+
+        if video:
+            videos.append(video)
+
+        else:
+            i -= 1
+
+    print(videos)
     return render_template('mytube/mytube.html',
+                           data=prepare_videos(videos, arguments, "All Videos"),
                            segment='mytube',
                            playlists=get_playlists(),
                            )

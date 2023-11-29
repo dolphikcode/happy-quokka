@@ -89,72 +89,7 @@
     </div>
     <h1 class="text-center">{{ data.config.title }} ({{ data.config.count }})</h1>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    {% for video in data.videos %}
-        <div class="col">
-            <div class="card h-100">
-                <div class="position-relative">
-                    <!-- Video thumbnail -->
-                    <a href="{{ url_for('mytube_blueprint.video', video_uuid=video.uuid) }}">
-<!--                        <img src="{{ url_for('mytube_blueprint.display_thumbnail', video_id=video.id) }}" class="card-img-top" alt="Thumbnail">-->
-                        <img src="{{ video.thumbnail }}" class="card-img-top" alt="Thumbnail">
-                    </a>
-                    <!-- Video duration -->
-                    <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;{{ video.duration }}&nbsp;</strong></p>
-                </div>
-                <div class="card-body">
-                    <a href="{{ url_for('mytube_blueprint.video', video_uuid=video.uuid) }}">
-                        <h6 class="card-title">{% autoescape off %}{{ video.title }}{% endautoescape %}</h6>
-                    </a>
-
-                    <p class="card-text">
-                        {{ video.channel }}
-                        <span class="card-text">
-                            <a href="{{ video.channel_url }}">
-                                <i class="material-icons opacity-10" style="">open_in_new</i>
-                            </a>
-                        </span>
-                        <br>Release date: {{ video.release_date }}
-                    </p>
-
-                    <!-- Watched, Deleted and To Download status with icon -->
-                    <span class="card-text" id="watched-status" data-video-id="{{ video.id }}" data-status-type="watched">
-                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'watched')" style="font-size:32px;{% if video.watched %}color:green;">visibility{% else %}">visibility_off{% endif %}</i>
-                    </span>
-                    <span class="card-text" id="deleted-status" data-video-id="{{ video.id }}" data-status-type="deleted">
-                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'deleted')" style="font-size:32px;{% if video.deleted %}color:red;">delete{% else %}">delete_forever{% endif %}</i>
-                    </span>
-                    <span class="card-text" id="download-status" data-video-id="{{ video.id }}" data-status-type="to_download">
-                        <i class="material-icons opacity-10" onclick="toggleStatus(this, 'to_download')" style="font-size:32px;{% if video.to_download %}color:green;">download_for_offline{% else %}">download{% endif %}</i>
-                    </span>
-                    {% if video.file_exist %}
-                        <span class="card-text">
-                            <i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i>
-                        </span>
-                    {% endif %}
-                    <!-- Playlists Dropdown -->
-                    <p>
-                        <div class="dropdown float-end">
-                            <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown{{ video.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <!-- Playlist name or "Add to playlist" -->
-                                {% if video.playlist_id %}
-                                    {{ (video.playlist_name[:50] + '..') if video.playlist_name|length > 50 else video.playlist_name }}
-                                {% else %}
-                                     Add to playlist
-                                {% endif %}
-                            </button>
-                            <ul class="dropdown-menu" aria-labelledby="playlistDropdown{{ video.id }}">
-                                {% for playlist in playlists %}
-                                    {% if playlist.id != video.playlist_id %}
-                                        <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }}, '{{ playlist.name }}')">{{ playlist.name }}</a></li>
-                                    {% endif %}
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </p>
-                </div>
-            </div>
-        </div>
-    {% endfor %}
+        {% include 'includes/video-cards.html' %}
     </div>
 </div>
 

@@ -6,27 +6,31 @@
 {% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
-
-<h1>MyTube</h1>
-<div class="container">
-  <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-      <div class="btn-group me-2" role="group" aria-label="First group">
-      <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_creator_playlist') }}" role="button">Get info</a>
-      <a class="btn btn-secondary disabled" href="#" role="button">Disabled</a>
+<div class="container mt-5">
+    <h1>MyTube</h1>
+    <div class="container">
+      <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+          <div class="btn-group me-2" role="group" aria-label="First group">
+          <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_creator_playlist') }}" role="button">Get info</a>
+          <a class="btn btn-secondary disabled" href="#" role="button">Disabled</a>
+        </div>
+        <div class="btn-group" role="group" aria-label="Button group">
+          <a class="btn btn-info " href="{{ url_for('mytube_blueprint.download_movies') }}" role="button">Download movies</a>
+          <a class="btn btn-secondary" href="{{ url_for('mytube_blueprint.download_cancel') }}" role="button">Stop download</a>
+        </div>
+      </div>
+      <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group" role="group" aria-label="Button group">
+          <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.create_playlist') }}" role="button">Create new playlist</a>
+          <a class="btn btn-secondary disabled" role="button">Link</a>
+        </div>
+      </div>
     </div>
-    <div class="btn-group" role="group" aria-label="Button group">
-      <a class="btn btn-info " href="{{ url_for('mytube_blueprint.download_movies') }}" role="button">Download movies</a>
-      <a class="btn btn-secondary" href="{{ url_for('mytube_blueprint.download_cancel') }}" role="button">Stop download</a>
+    <h2>Videos for now...</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% include 'includes/video-cards.html' %}
     </div>
-  </div>
-  <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-    <div class="btn-group" role="group" aria-label="Button group">
-      <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.create_playlist') }}" role="button">Create new playlist</a>
-      <a class="btn btn-secondary disabled" role="button">Link</a>
-    </div>
-  </div>
 </div>
-
 
 {% endblock content %}
 
@@ -40,6 +44,82 @@
     const baseUrl = "{{ url_for('static', filename='') }}";
 </script>
 
+<!-- Toggle status of Watched and To_Download-->
+<script>
+    function toggleStatus(element) {
+        const videoId = element.parentElement.dataset.videoId;
+        const statusType = element.parentElement.dataset.statusType;
+
+        // Make an asynchronous request to update the status
+        fetch('{{ url_for('mytube_blueprint.update_status') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `video_id=${videoId}&status_type=${statusType}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the image source based on the new status
+                if (statusType == 'watched') {
+                    const iconName = data.new_status ? 'visibility' : 'visibility_off';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:green;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+                else if (statusType == 'deleted') {
+                    const iconName = data.new_status ? 'delete' : 'delete_forever';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:red;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+                else if (statusType == 'to_download') {
+                    const iconName = data.new_status ? 'download_for_offline' : 'download';
+                    element.textContent = iconName;
+                    const iconColor = data.new_status ? 'font-size:32px;color:green;' : 'font-size:32px;';
+                    element.style = iconColor;
+                    }
+
+            } else {
+                console.error('Failed to update status.');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating status:', error);
+        });
+    }
+</script>
+
+
+<!-- Add video to the playlist -->
+<script>
+    function addToPlaylist(videoId, playlistId, playlistName) {
+        event.preventDefault();  // Prevent the default behavior of the anchor element
+        // Make an asynchronous request to update the playlist
+        fetch('{{ url_for('mytube_blueprint.add_to_playlist') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `video_id=${videoId}&playlist_id=${playlistId}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var buttonName = "playlistDropdown"+videoId;
+                var playlistButton = document.getElementById(buttonName);
+                playlistButton.textContent = playlistName;
+                // alert('Video added to playlist successfully!');
+            } else {
+                alert('Failed to add video to playlist.');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding video to playlist:', error);
+        });
+    }
+</script>
 
 
 {% endblock javascripts %}

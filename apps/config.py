@@ -13,6 +13,7 @@ class Config(object):
     # Assets Management
     ASSETS_ROOT = os.getenv('ASSETS_ROOT', '/static/assets')
     VIDEO_ROOT = os.getenv('VIDEO_ROOT', '/static/video')
+    API_LINK = os.getenv('API_LINK', 'http://127.0.0.1:81')
 
     # Set up the App SECRET_KEY
     SECRET_KEY  = os.getenv('SECRET_KEY', None)

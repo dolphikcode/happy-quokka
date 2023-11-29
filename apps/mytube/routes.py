@@ -3,7 +3,7 @@
 Copyright (c) 2019 - present AppSeed.us
 """
 import json
-
+import uuid
 import requests
 from sqlalchemy import func, desc
 
@@ -16,6 +16,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 from io import BytesIO
 import os.path
+
+from apps.mytube.forms import PlaylistForm
 from apps.mytube.models import *
 import uuid
 
@@ -56,7 +58,7 @@ def prepare_videos(vids, arguments, title):
             'url': v.url,
             'description': json.loads(v.description),
             'channel': v.channel,
-            # channel_url - skip
+            'channel_url': v.channel_url,
             'thumbnail': url_for('static', filename=f'thumbs/{v.youtube_id}.jpg'),
             'duration': convert_seconds_to_hms(v.duration),
             'watched': v.watched,
@@ -127,6 +129,7 @@ def videos():
     videos = (db.session.scalars(db.select(Video)
                 .filter_by(user_uuid=current_user.uuid)
                 .filter_by(deleted=deleted)
+                .filter_by(playlist_uuid=None)
                 .order_by(getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
               .all())
 
@@ -202,13 +205,14 @@ def video(video_uuid):
 
     processed_video = {
         'id': video.id,
+        'uuid': video.uuid,
         'youtube_id': video.youtube_id,
         'user_uuid': video.user_uuid,
         'title': json.loads(video.title),
         'url': video.url,
         'description': json.loads(video.description),
         'channel': video.channel,
-        # channel_url - skip
+        'channel_url': video.channel_url,
         'path': url_for('static', filename=f'videos/{video.youtube_id}.mp4'),
         'duration': convert_seconds_to_hms(video.duration),
         'watched': video.watched,
@@ -237,12 +241,22 @@ def video(video_uuid):
 @blueprint.route('/playlist/create', methods=['GET', 'POST'])
 @login_required
 def create_playlist():
-    if request.method == 'POST':
-        new_playlist = Playlist(name=request.form['name'])
+    form = PlaylistForm()
+
+    if form.validate_on_submit():
+        new_playlist = Playlist(
+            user_uuid=current_user.uuid,
+            name=form.name.data,
+            last_used=func.now(),
+            created=func.now(),
+            modified=func.now(),
+            uuid=str(uuid.uuid4())
+        )
         db.session.add(new_playlist)
         db.session.commit()
-        return redirect(url_for('all_videos'))
-    return render_template('create_playlist.html')
+        return redirect(url_for('mytube_blueprint.mytube'))
+
+    return render_template('mytube/create_playlist.html', form=form)
 
 
 @blueprint.route('/playlist/<int:playlist_id>/edit', methods=['GET', 'POST'])
@@ -462,7 +476,8 @@ def download_creator_playlist():
         else:
             to_database = 0
         # Call the API with playlist_id and add_to_database
-        api_url = f'http://happy-api:5000/get_info/{current_user.id}/{playlist_id}/{str(to_database)}'
+        api_link = current_app.config['API_LINK']
+        api_url = f'{api_link}/get_info/{current_user.id}/{playlist_id}/{str(to_database)}'
         print(api_url)
         # Make the API request here using your preferred method (e.g., requests library)
 
@@ -473,7 +488,75 @@ def download_creator_playlist():
         else:
             print(response)
 
-        return redirect(url_for('home_blueprint.index'))  # Redirect to the home page or another page after processing
+        return redirect(url_for('mytube_blueprint.mytube'))  # Redirect after processing
 
     playlists = CreatorPlaylist.query.all()
     return render_template('mytube/download_creator_playlist.html', playlists=playlists)
+
+
+@blueprint.route('/download_movies', methods=['GET'])
+def download_movies():
+    api = (db.session.scalars(db.select(ApiExchange)
+                   .filter_by(user_uuid=current_user.uuid, module='download_movies'))
+                   .first())
+    api_command = json.loads(api.command)
+    if not api:
+        api_command = ApiExchange()
+        api_command.user_uuid = current_user.uuid
+        api_command.uuid = str(uuid.uuid4())
+        api_command.status = 'starting download'
+        api_command.modified = datetime.utcnow()
+        api_command.module = 'download_movies'
+        api_command.command = json.dumps({
+                'run':True
+            })
+        db.session.add(api_command)
+    elif not api_command['run']:
+        api.command = json.dumps({
+            'run': True
+        })
+    # else:
+    #     return redirect(url_for('mytube_blueprint.mytube'))  # Redirect after processing
+    db.session.commit()
+
+    # Call the API with playlist_id and add_to_database
+    api_link = current_app.config['API_LINK']
+    api_url = f'{api_link}/download_movies/{current_user.id}'
+
+    # Example using the requests library
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        print(response)
+    else:
+        print(response)
+
+    return redirect(url_for('mytube_blueprint.mytube'))  # Redirect after processing
+
+
+@blueprint.route('/download_cancel', methods=['GET'])
+def download_cancel():
+    api = (db.session.scalars(db.select(ApiExchange)
+            .filter_by(user_uuid=current_user.uuid, module='download_movies'))
+           .first())
+    api.command = json.dumps({
+        'run': False
+    })
+    db.session.commit()
+
+    return redirect(url_for('mytube_blueprint.mytube'))  # Redirect after processing
+
+@blueprint.route('/download_movie/<video_uuid>', methods=['GET'])
+def download_movie(video_uuid):
+    # Call the API with playlist_id and add_to_database
+    api_link = current_app.config['API_LINK']
+    api_url = f'{api_link}/download_movie/{video_uuid}'
+    print(api_url)
+
+    # Example using the requests library
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        print(response)
+    else:
+        print(response)
+
+    return redirect(url_for('mytube_blueprint.video', video_uuid=video_uuid ))  # Redirect after processing

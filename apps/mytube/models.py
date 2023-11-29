@@ -103,3 +103,15 @@ class Video(db.Model):
     playlist_uuid = db.Column(db.String(36))
     uuid = db.Column(db.String(36), nullable=False)
 
+
+class ApiExchange(db.Model):
+    __tablename__ = 'ApiExchange'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_uuid = db.Column(db.String(36), nullable=False)
+    module = db.Column(db.String(20), nullable=False)
+    command = db.Column(db.String(256), nullable=False)
+    status = db.Column(db.String(20), nullable=False)
+    created = db.Column(db.DateTime, default=func.now())
+    modified = db.Column(db.DateTime, default=func.now())
+    uuid = db.Column(db.String(36), nullable=False)

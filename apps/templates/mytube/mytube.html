@@ -8,8 +8,25 @@
 {% block content %}
 
 <h1>MyTube</h1>
-<a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_creator_playlist') }}" role="button" aria-disabled="true">Get info</a>
-<a class="btn btn-secondary disabled" role="button" aria-disabled="true">Link</a>
+<div class="container">
+  <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+      <div class="btn-group me-2" role="group" aria-label="First group">
+      <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_creator_playlist') }}" role="button">Get info</a>
+      <a class="btn btn-secondary disabled" href="#" role="button">Disabled</a>
+    </div>
+    <div class="btn-group" role="group" aria-label="Button group">
+      <a class="btn btn-info " href="{{ url_for('mytube_blueprint.download_movies') }}" role="button">Download movies</a>
+      <a class="btn btn-secondary" href="{{ url_for('mytube_blueprint.download_cancel') }}" role="button">Stop download</a>
+    </div>
+  </div>
+  <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+    <div class="btn-group" role="group" aria-label="Button group">
+      <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.create_playlist') }}" role="button">Create new playlist</a>
+      <a class="btn btn-secondary disabled" role="button">Link</a>
+    </div>
+  </div>
+</div>
+
 
 {% endblock content %}
 

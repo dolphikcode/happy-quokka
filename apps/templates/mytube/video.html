@@ -72,6 +72,7 @@
                 </span>
             {% endif %}
         </div>
+            <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid) }}" role="button">Push video download</a>
         </div>
 
         <!-- Chapters Collapse Content -->

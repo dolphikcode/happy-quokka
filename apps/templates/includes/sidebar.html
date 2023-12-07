@@ -34,21 +34,12 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white {% if 'videos' in segment %} active bg-gradient-primary {% endif %}"
-             href="{{ url_for('mytube_blueprint.videos') }}">
+          <a class="nav-link text-white {% if 'mt_all' in segment %} active bg-gradient-primary {% endif %}"
+             href="{{ url_for('mytube_blueprint.videos', playlist_uuid='all') }}">
             <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
               <i class="material-icons opacity-10">video_library</i>
             </div>
             <span class="nav-link-text ms-1">All Videos</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white {% if 'yt_trash' in segment %} active bg-gradient-primary {% endif %}"
-             href="{{ url_for('mytube_blueprint.videos', trash='true') }}">
-            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="material-icons opacity-10">delete</i>
-            </div>
-            <span class="nav-link-text ms-1">Deleted videos</span>
           </a>
         </li>
 
@@ -58,7 +49,7 @@
             {% for playlist in playlists[:2] %}
                 <li class="nav-item">
                   <a class="nav-link text-white {% if playlist.name in segment %} active bg-gradient-primary {% endif %}"
-                     href="{{ url_for('mytube_blueprint.mytube_playlist', playlist_uuid=playlist.uuid) }}">
+                     href="{{ url_for('mytube_blueprint.videos', playlist_uuid=playlist.uuid) }}">
                     <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
                       <i class="material-icons opacity-10">queue_music</i>
                     </div>
@@ -78,17 +69,35 @@
                   </a>
                 </li>
                 <div class="collapse" id="collapseExample">
-                    {% for playlist in playlists[2:] %}
-                    <li class="nav-item">
-                      <a class="nav-link text-white"
-                         href="{{ url_for('mytube_blueprint.mytube_playlist', playlist_uuid=playlist.uuid) }}">
-                        <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-                          <i class="material-icons opacity-10">queue_music</i>
-                        </div>
-                        <span class="nav-link-text ms-1">{{ (playlist.name[:25] + '...') if playlist.name|length > 25 else playlist.name }}</span>
-                      </a>
-                    </li>
-                    {% endfor %}
+                  {% for playlist in playlists[2:] %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white"
+                       href="{{ url_for('mytube_blueprint.videos', playlist_uuid=playlist.uuid) }}">
+                      <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="material-icons opacity-10">queue_music</i>
+                      </div>
+                      <span class="nav-link-text ms-1">{{ (playlist.name[:25] + '...') if playlist.name|length > 25 else playlist.name }}</span>
+                    </a>
+                  </li>
+                  {% endfor %}
+                  <li class="nav-item">
+                    <a class="nav-link text-white {% if 'mt_trash' in segment %} active bg-gradient-primary {% endif %}"
+                       href="{{ url_for('mytube_blueprint.videos', playlist_uuid='trash') }}">
+                      <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="material-icons opacity-10">delete</i>
+                      </div>
+                      <span class="nav-link-text ms-1">Deleted videos</span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link text-white {% if 'mt_history' in segment %} active bg-gradient-primary {% endif %}"
+                       href="{{ url_for('mytube_blueprint.videos', playlist_uuid='history') }}">
+                      <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
+                        <i class="material-icons opacity-10">history</i>
+                      </div>
+                      <span class="nav-link-text ms-1">History</span>
+                    </a>
+                  </li>
                 </div>
             {% endif %}
         {% endif %}

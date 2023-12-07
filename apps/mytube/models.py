@@ -1,10 +1,6 @@
 # -*- encoding: utf-8 -*-
 from sqlalchemy import func
-
-# from flask_login import UserMixin
-
 from apps import db
-from datetime import datetime
 
 
 class YTLogs(db.Model):
@@ -98,6 +94,7 @@ class Video(db.Model):
     release_date = db.Column(db.Integer)
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
+    last_visited = db.Column(db.DateTime)
     comment = db.Column(db.String(1024))
     rate = db.Column(db.Integer)
     playlist_uuid = db.Column(db.String(36))

@@ -11,7 +11,7 @@
     <!-- Video Header with Embedded YouTube Video -->
     <div class="card-header text-center">
         {% if video.file_exist %}
-            <video id="myVideo" width="320" height="240" controls>
+            <video preload="auto" onloadedmeta='this.play()' id="myVideo" width="320" height="240" controls>
                 <source src="{{ video.path }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
@@ -227,11 +227,6 @@ function updatePlaybackTime(videoId, currentTime) {
 }
 
 
-
-
-
-
-
 // Function to initialize video position based on stored position in the database
 function initializeVideoPosition(video, videoId) {
     // Make an asynchronous request to get the stored playback time from the database
@@ -257,11 +252,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Call the function to initialize the video position
     initializeVideoPosition(video, videoId);
+
+    video.addEventListener('canplaythrough', function () {
+        video.play();
+        video.pause();  // Manually trigger the preload of the entire video
+    });
+
+    // Manually trigger the preload of the entire video
+    video.preload = "auto";
+
 });
-
-
-
-
 
 function rewindToTime(time) {
         var video = document.getElementById('myVideo');

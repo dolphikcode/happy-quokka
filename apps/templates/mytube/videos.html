@@ -8,86 +8,71 @@
 {% block content %}
 <body>
 <div class="container mt-5">
-    <!--  Filter and Sort  -->
-    <div class="btn-toolbar" role="toolbar" aria-label="Filter and Sort">
-        <!--  Watched radios      -->
-        <div class="btn-group btn-group-sm me-2" role="group" id="filterWatched" aria-label="Filter watched">
-            <input type="radio" class="btn-check" name="filter-watched" id="fW" autocomplete="off" {% if data.config.fW == -1 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fW">All</label>
+    <!-- NEW Filter and Sort  -->
+    <div class="container">
+      <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+        <div class="btn-group btn-group-sm me-2" role="group" aria-label="First group">
+            <!--      FILTER WATCHED      -->
+            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='watched', atrib=data.config.fWatched) }}" role="button">
+                {% if data.config.fWatched == 'all' %}
+                    <i class="material-icons" style="font-size:22px;color:blue;">disabled_visible</i>
+                {% elif data.config.fWatched == 'true' %}
+                    <i class="material-icons" style="font-size:22px;color:green;">visibility</i>
+                {% elif data.config.fWatched == 'false' %}
+                    <i class="material-icons" style="font-size:22px;color:red;">visibility_off</i>
+                {% endif %}
+            </a>
 
-            <input type="radio" class="btn-check" name="filter-watched" id="fWTrue" autocomplete="off" {% if data.config.fW == 1 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fWTrue">
-                <i class="material-icons opacity-10" style="font-size:22px;color:green;">visibility</i>
-            </label>
+            <!--      FILTER TO DOWNLOAD      -->
+            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='to_download', atrib=data.config.fToDownload) }}" role="button">
+                {% if data.config.fToDownload == 'all' %}
+                    <i class="material-icons" style="font-size:22px;color:blue;">downloading</i>
+                {% elif data.config.fToDownload == 'true' %}
+                    <i class="material-icons" style="font-size:22px;color:green;">download_for_offline</i>
+                {% elif data.config.fToDownload == 'false' %}
+                    <i class="material-icons" style="font-size:22px;color:red;">download</i>
+                {% endif %}
+            </a>
 
-            <input type="radio" class="btn-check" name="filter-watched" id="fWFalse" autocomplete="off" {% if data.config.fW == 0 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fWFalse">
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">visibility_off</i>
-            </label>
+            <!--      FILTER DOWNLOADED      -->
+            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='downloaded', atrib=data.config.fDownloaded) }}" role="button">
+                {% if data.config.fDownloaded == 'all' %}
+                    <i class="material-icons" style="font-size:22px;color:blue;">file_download_done</i>
+                {% elif data.config.fDownloaded == 'true' %}
+                    <i class="material-icons" style="font-size:22px;color:green;">file_download_done</i>
+                {% elif data.config.fDownloaded == 'false' %}
+                    <i class="material-icons" style="font-size:22px;color:red;">file_download_done</i>
+                {% endif %}
+            </a>
+
+            <button class="btn btn-warning dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{ data.config.sorted }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='released-desc') }}" >Date of release (descending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='released-asc') }}" >Date of release (acsending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='created-desc') }}" >Date of adding to myTube (descending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='created-asc') }}" >Date of adding to myTube (acsending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='visited-desc') }}" >Last visit (descending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='visited-asc') }}" >Last visit (acsending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='duration-desc') }}" >Duration (descending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='duration-asc') }}" >Duration (acsending)</a></li>
+            </ul>
+            <button class="btn btn-info dropdown-toggle" type="button" id="limitDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{ data.config.limit }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="limitDropdown">
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='100') }}" >100</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='200') }}" >200</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='500') }}" >500</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='all') }}" >all</a></li>
+            </ul>
+
         </div>
 
-        <!--  To Download radios  -->
-        <div class="btn-group btn-group-sm me-2" role="group" id="filterToDownload" aria-label="Filter To Download">
-            <input type="radio" class="btn-check" name="filter-download" id="fD" autocomplete="off" {% if data.config.fD == -1 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fD">All</label>
-
-            <input type="radio" class="btn-check" name="filter-download" id="fDTrue" autocomplete="off" {% if data.config.fD == 1 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fDTrue">
-                <i class="material-icons opacity-10" style="font-size:22px;color:green;">download_for_offline</i>
-            </label>
-
-            <input type="radio" class="btn-check" name="filter-download" id="fDFalse" autocomplete="off" {% if data.config.fD == 0 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fDFalse">
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">download</i>
-            </label>
-        </div>
-
-        <!--  File Exist radios  -->
-        <div class="btn-group btn-group-sm me-2" role="group" id="filterFileExist" aria-label="Filter File Exist">
-            <input type="radio" class="btn-check" name="filter-file-exist" id="fF" autocomplete="off" {% if data.config.fF == -1 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fF">All</label>
-
-            <input type="radio" class="btn-check" name="filter-file-exist" id="fFTrue" autocomplete="off" {% if data.config.fF == 1 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fFTrue">
-                <i class="material-icons opacity-10" style="font-size:22px;color:green;">file_download_done</i>
-            </label>
-
-            <input type="radio" class="btn-check" name="filter-file-exist" id="fFFalse" autocomplete="off" {% if data.config.fF == 0 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="fFFalse">
-                <i class="material-icons opacity-10" style="font-size:22px;color:red;">file_download_done</i>
-            </label>
-        </div>
-
-        <!--  Sort radios  -->
-        <div class="btn-group btn-group-sm me-2" role="group" id="Sort" aria-label="Filter File Exist">
-            <input type="radio" class="btn-check" name="sort" id="sAA" autocomplete="off" {% if data.config.sort == 0 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="sAA">
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">task</i>
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">arrow_upward</i>
-            </label>
-            <input type="radio" class="btn-check" name="sort" id="sAD" autocomplete="off" {% if data.config.sort == 1 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="sAD">
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">task</i>
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">arrow_downward</i>
-            </label>
-            <input type="radio" class="btn-check" name="sort" id="sRA" autocomplete="off" {% if data.config.sort == -1 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="sRA">
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">movie</i>
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">arrow_upward</i>
-            </label>
-            <input type="radio" class="btn-check" name="sort" id="sRD" autocomplete="off" {% if data.config.sort == -2 %}checked{% endif %}>
-            <label class="btn btn-outline-primary" onclick="filterSort()" for="sRD">
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">movie</i>
-                <i class="material-icons opacity-10" style="font-size:22px;color:grey;">arrow_downward</i>
-            </label>
-        </div>
-
-        <!--  Filter button  -->
-        <div class="btn-group btn-group-sm" role="group" aria-label="Third group">
-            <a href="{{ url_for('mytube_blueprint.videos', fW=data.config.fW, fD=data.config.fD, fF=data.config.fF, sort=data.config.sort, trash=data.config.trash) }}" type="button" id="button-filter" name="button-filter" class="btn btn-info">Filter</a>
-        </div>
+      </div>
     </div>
-    <h1 class="text-center">{{ data.config.title }} ({{ data.config.count }})</h1>
+
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% include 'includes/video-cards.html' %}
     </div>
@@ -156,89 +141,89 @@
 
 <!-- Filter and sort -->
 <script>
-    function filterSort() {
-        var x_watched = '';
-        var x_to_download = '';
-        var x_file_exist = '';
-        var x_sort = '';
-        var x_deleted = '&trash='+{{ data.config.trash }};
+<!--    function filterSort() {-->
+<!--        var x_watched = '';-->
+<!--        var x_to_download = '';-->
+<!--        var x_file_exist = '';-->
+<!--        var x_sort = '';-->
+<!--        var x_deleted = '&trash='+{{ data.config.trash }};-->
 
 
-        // Wait 100ms to function properly
-        setTimeout(function(){
-            // Get all radio buttons in the Watched group
-            var radioButtons = document.getElementsByName("filter-watched");
+<!--        // Wait 100ms to function properly-->
+<!--        setTimeout(function(){-->
+<!--            // Get all radio buttons in the Watched group-->
+<!--            var radioButtons = document.getElementsByName("filter-watched");-->
 
-            // Loop through the radio buttons to find the checked one
-            for (var i = 0; i < radioButtons.length; i++) {
-                if (radioButtons[i].checked && radioButtons[i].id != 'fW') {
-                    x_watched = 'fw='+String(radioButtons[i].id).substring(2);
-                    break;  // Exit the loop since we found the checked radio button
-                }
-            }
-
-
-            // Get all radio buttons in the To Download group
-            var radioButtons = document.getElementsByName("filter-download");
-
-            // Loop through the radio buttons to find the checked one
-            for (var i = 0; i < radioButtons.length; i++) {
-                if (radioButtons[i].checked && radioButtons[i].id != 'fD') {
-                    x_to_download = '&fd='+String(radioButtons[i].id).substring(2);
-                    break;  // Exit the loop since we found the checked radio button
-                }
-            }
+<!--            // Loop through the radio buttons to find the checked one-->
+<!--            for (var i = 0; i < radioButtons.length; i++) {-->
+<!--                if (radioButtons[i].checked && radioButtons[i].id != 'fW') {-->
+<!--                    x_watched = 'fw='+String(radioButtons[i].id).substring(2);-->
+<!--                    break;  // Exit the loop since we found the checked radio button-->
+<!--                }-->
+<!--            }-->
 
 
-            // Get all radio buttons in the File Exist group
-            var radioButtons = document.getElementsByName("filter-file-exist");
+<!--            // Get all radio buttons in the To Download group-->
+<!--            var radioButtons = document.getElementsByName("filter-download");-->
 
-            // Loop through the radio buttons to find the checked one
-            for (var i = 0; i < radioButtons.length; i++) {
-                if (radioButtons[i].checked && radioButtons[i].id != 'fF') {
-                    x_file_exist = '&ff='+String(radioButtons[i].id).substring(2);
-                    break;  // Exit the loop since we found the checked radio button
-                }
-            }
+<!--            // Loop through the radio buttons to find the checked one-->
+<!--            for (var i = 0; i < radioButtons.length; i++) {-->
+<!--                if (radioButtons[i].checked && radioButtons[i].id != 'fD') {-->
+<!--                    x_to_download = '&fd='+String(radioButtons[i].id).substring(2);-->
+<!--                    break;  // Exit the loop since we found the checked radio button-->
+<!--                }-->
+<!--            }-->
+
+
+<!--            // Get all radio buttons in the File Exist group-->
+<!--            var radioButtons = document.getElementsByName("filter-file-exist");-->
+
+<!--            // Loop through the radio buttons to find the checked one-->
+<!--            for (var i = 0; i < radioButtons.length; i++) {-->
+<!--                if (radioButtons[i].checked && radioButtons[i].id != 'fF') {-->
+<!--                    x_file_exist = '&ff='+String(radioButtons[i].id).substring(2);-->
+<!--                    break;  // Exit the loop since we found the checked radio button-->
+<!--                }-->
+<!--            }-->
 
 
 
-            // Get all radio buttons in Sort group
-            var radioButtons = document.getElementsByName("sort");
+<!--            // Get all radio buttons in Sort group-->
+<!--            var radioButtons = document.getElementsByName("sort");-->
 
-            // Loop through the radio buttons to find the checked one
-            for (var i = 0; i < radioButtons.length; i++) {
-                if (radioButtons[i].checked) {
-                    switch(radioButtons[i].id) {
-                        case 'sRA':
-                            x_sort = '&sort=-1';
-                            break;
-                        case 'sRD':
-                            x_sort = '&sort=-2';
-                            break;
-                        case 'sAA':
-                            x_sort = '&sort=0';
-                            break;
-                        case 'sAD':
-                            x_sort = '&sort=1';
-                            break;
-                        default:
-                            x_sort = '&sort=0';
-                        }
-                    break;  // Exit the loop since we found the checked radio button
-                }
-            }
+<!--            // Loop through the radio buttons to find the checked one-->
+<!--            for (var i = 0; i < radioButtons.length; i++) {-->
+<!--                if (radioButtons[i].checked) {-->
+<!--                    switch(radioButtons[i].id) {-->
+<!--                        case 'sRA':-->
+<!--                            x_sort = '&sort=-1';-->
+<!--                            break;-->
+<!--                        case 'sRD':-->
+<!--                            x_sort = '&sort=-2';-->
+<!--                            break;-->
+<!--                        case 'sAA':-->
+<!--                            x_sort = '&sort=0';-->
+<!--                            break;-->
+<!--                        case 'sAD':-->
+<!--                            x_sort = '&sort=1';-->
+<!--                            break;-->
+<!--                        default:-->
+<!--                            x_sort = '&sort=0';-->
+<!--                        }-->
+<!--                    break;  // Exit the loop since we found the checked radio button-->
+<!--                }-->
+<!--            }-->
 
-            // Set href for Button
-            var filterButton = document.getElementById("button-filter");
-            filterButton.href = '{{ url_for('mytube_blueprint.videos') }}'+'?'
-                                    +x_watched
-                                    +x_to_download
-                                    +x_file_exist
-                                    +x_sort
-                                    +x_deleted;
-        }, 100);
-    }
+<!--            // Set href for Button-->
+<!--            var filterButton = document.getElementById("button-filter");-->
+<!--            filterButton.href = '{{ url_for('mytube_blueprint.videos', playlist_uuid='all') }}'+'?'-->
+<!--                                    +x_watched-->
+<!--                                    +x_to_download-->
+<!--                                    +x_file_exist-->
+<!--                                    +x_sort-->
+<!--                                    +x_deleted;-->
+<!--        }, 100);-->
+<!--    }-->
 </script>
 
 <!-- Add video to the playlist -->

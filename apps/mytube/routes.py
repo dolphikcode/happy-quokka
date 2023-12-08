@@ -54,6 +54,21 @@ def prepare_videos(vids, title, source):
                 continue
 
         playlist = get_playlist(v.playlist_uuid)
+        if v.playlist_uuid:
+            pl_name = playlist.name
+        else:
+            pl_name = 'Add to playlist'
+        plists = get_playlists()
+        plisthtml = ''
+        for p in plists:
+            if p.uuid != v.playlist_uuid:
+                plisthtml += f'<li><a class=\"dropdown-item\" href=\"#\" onclick=\"addToPlaylist({v.id}, {p.id}, \'{p.name}\')\">{p.name}</a></li>'
+
+        playlistDropdownHtml = (f"<button class=\"btn btn-secondary dropdown-toggle\" type=\"button\" "
+                                f"id=\"playlistDropdown{v.id}\" data-bs-toggle=\"dropdown\" "
+                                f"aria-haspopup=\"true\" aria-expanded=\"false\">{pl_name}</button><ul "
+                                f"class=\"dropdown-menu\" aria-labelledby=\"playlistDropdown{v.id}\">"
+                                f"{plisthtml}</ul>")
 
         processed_video = {
             'id': v.id,
@@ -78,6 +93,7 @@ def prepare_videos(vids, title, source):
             'uuid': v.uuid,
             'playlist_id': playlist.id,
             'playlist_name': playlist.name,
+            'playlistDropdownHtml': playlistDropdownHtml
         }
         videos.append(processed_video)
 
@@ -141,7 +157,6 @@ def sort_filter(source, obiekt, atrib):
     db.session.commit()
 
     return redirect(url_for('mytube_blueprint.videos', playlist_uuid=source))
-
 
 
 @blueprint.route('/')
@@ -211,7 +226,7 @@ def videos(playlist_uuid):
     playlist = Playlist()
     segment = ''
     pl_uuid = ''
-    deleted=False
+    deleted = False
     title = ''
     if playlist_uuid == 'all':
         segment = 'mt_all'
@@ -238,11 +253,11 @@ def videos(playlist_uuid):
         source = playlist_uuid
 
     videos = (db.session.scalars(db.select(Video)
-                                 .filter_by(user_uuid=current_user.uuid)
-                                 .filter_by(deleted=deleted)
-                                 .filter_by(playlist_uuid=pl_uuid)
-                                 .order_by(
-            getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
+    .filter_by(user_uuid=current_user.uuid)
+    .filter_by(deleted=deleted)
+    .filter_by(playlist_uuid=pl_uuid)
+    .order_by(
+        getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
               .all())
 
     return render_template('mytube/videos.html',

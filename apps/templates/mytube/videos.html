@@ -73,9 +73,14 @@
       </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {% include 'includes/video-cards.html' %}
+    <!-- Your videos container -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="videos-container">
+        <!-- Initial rendering of the first 100 videos will be here -->
     </div>
+    {% if data.config.count | int > data.config.limit | int %}
+        <!-- Your existing "Load More" button -->
+        <button class="btn btn-secondary" id="load-more-btn">Load More</button>
+    {% endif %}
 </div>
 
 </body>
@@ -90,6 +95,7 @@
 
 <script>
     const baseUrl = "{{ url_for('static', filename='') }}";
+    const url_for_video = "{{ url_for('mytube_blueprint.video', video_uuid='') }}";
 </script>
 
 <!-- Toggle status of Watched and To_Download-->
@@ -139,93 +145,6 @@
     }
 </script>
 
-<!-- Filter and sort -->
-<script>
-<!--    function filterSort() {-->
-<!--        var x_watched = '';-->
-<!--        var x_to_download = '';-->
-<!--        var x_file_exist = '';-->
-<!--        var x_sort = '';-->
-<!--        var x_deleted = '&trash='+{{ data.config.trash }};-->
-
-
-<!--        // Wait 100ms to function properly-->
-<!--        setTimeout(function(){-->
-<!--            // Get all radio buttons in the Watched group-->
-<!--            var radioButtons = document.getElementsByName("filter-watched");-->
-
-<!--            // Loop through the radio buttons to find the checked one-->
-<!--            for (var i = 0; i < radioButtons.length; i++) {-->
-<!--                if (radioButtons[i].checked && radioButtons[i].id != 'fW') {-->
-<!--                    x_watched = 'fw='+String(radioButtons[i].id).substring(2);-->
-<!--                    break;  // Exit the loop since we found the checked radio button-->
-<!--                }-->
-<!--            }-->
-
-
-<!--            // Get all radio buttons in the To Download group-->
-<!--            var radioButtons = document.getElementsByName("filter-download");-->
-
-<!--            // Loop through the radio buttons to find the checked one-->
-<!--            for (var i = 0; i < radioButtons.length; i++) {-->
-<!--                if (radioButtons[i].checked && radioButtons[i].id != 'fD') {-->
-<!--                    x_to_download = '&fd='+String(radioButtons[i].id).substring(2);-->
-<!--                    break;  // Exit the loop since we found the checked radio button-->
-<!--                }-->
-<!--            }-->
-
-
-<!--            // Get all radio buttons in the File Exist group-->
-<!--            var radioButtons = document.getElementsByName("filter-file-exist");-->
-
-<!--            // Loop through the radio buttons to find the checked one-->
-<!--            for (var i = 0; i < radioButtons.length; i++) {-->
-<!--                if (radioButtons[i].checked && radioButtons[i].id != 'fF') {-->
-<!--                    x_file_exist = '&ff='+String(radioButtons[i].id).substring(2);-->
-<!--                    break;  // Exit the loop since we found the checked radio button-->
-<!--                }-->
-<!--            }-->
-
-
-
-<!--            // Get all radio buttons in Sort group-->
-<!--            var radioButtons = document.getElementsByName("sort");-->
-
-<!--            // Loop through the radio buttons to find the checked one-->
-<!--            for (var i = 0; i < radioButtons.length; i++) {-->
-<!--                if (radioButtons[i].checked) {-->
-<!--                    switch(radioButtons[i].id) {-->
-<!--                        case 'sRA':-->
-<!--                            x_sort = '&sort=-1';-->
-<!--                            break;-->
-<!--                        case 'sRD':-->
-<!--                            x_sort = '&sort=-2';-->
-<!--                            break;-->
-<!--                        case 'sAA':-->
-<!--                            x_sort = '&sort=0';-->
-<!--                            break;-->
-<!--                        case 'sAD':-->
-<!--                            x_sort = '&sort=1';-->
-<!--                            break;-->
-<!--                        default:-->
-<!--                            x_sort = '&sort=0';-->
-<!--                        }-->
-<!--                    break;  // Exit the loop since we found the checked radio button-->
-<!--                }-->
-<!--            }-->
-
-<!--            // Set href for Button-->
-<!--            var filterButton = document.getElementById("button-filter");-->
-<!--            filterButton.href = '{{ url_for('mytube_blueprint.videos', playlist_uuid='all') }}'+'?'-->
-<!--                                    +x_watched-->
-<!--                                    +x_to_download-->
-<!--                                    +x_file_exist-->
-<!--                                    +x_sort-->
-<!--                                    +x_deleted;-->
-<!--        }, 100);-->
-<!--    }-->
-</script>
-
 <!-- Add video to the playlist -->
 <script>
     function addToPlaylist(videoId, playlistId, playlistName) {
@@ -253,6 +172,130 @@
             console.error('Error adding video to playlist:', error);
         });
     }
+</script>
+
+
+
+
+
+
+
+
+
+
+<!-- Add this script at the end of your HTML file, after including jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<script>
+    // Get a reference to the "Load More" button
+    var loadMoreBtn = document.getElementById('load-more-btn');
+
+    // Assuming you have all video data available in the 'allVideos' variable
+    var allVideos = {{ data.videos | tojson | safe }};
+    var limit_videos = Number({{ data.config.limit }});
+    var max_videos = Number({{ data.config.count }});
+
+    // Function to render videos
+    function renderVideos(startIndex, endIndex) {
+        var videosContainer = $('#videos-container');
+
+        for (var i = startIndex; i < endIndex; i++) {
+            var video = allVideos[i];
+            var watched = '<i class="material-icons opacity-10" onclick="toggleStatus(this, \'watched\')" style="font-size:32px; color:' +
+                    (video.watched ? 'green' : '') + '">' +
+                    'visibility' + (video.watched ? '' : '_off') +
+                    '</i>';
+            var deleted = '<i class="material-icons opacity-10" onclick="toggleStatus(this, \'deleted\')" style="font-size:32px; color:' +
+                    (video.deleted ? 'red' : '') + '">' +
+                    (video.deleted ? 'delete' : 'delete_forever') +
+                    '</i>';
+            var to_download = '<i class="material-icons opacity-10" onclick="toggleStatus(this, \'to_download\')" style="font-size:32px; color:' +
+                    (video.to_download ? 'green' : '') + '">' +
+                    (video.to_download ? 'download_for_offline' : 'download') +
+                    '</i>';
+            var file_exist = video.file_exist ?
+                    '<span class="card-text"><i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i></span>' :
+                    '';
+            // Append the video HTML to the container
+            videosContainer.append(`
+               <div class="col">
+                    <div class="card h-100 bg-gradient-dark">
+                        <div class="position-relative">
+                            <!-- Video thumbnail -->
+                            <a href=${url_for_video}${video.uuid}>
+                                <img src="${video.thumbnail}" class="card-img-top" alt="Thumbnail">
+                            </a>
+                            <!-- Video duration -->
+                            <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;${video.duration}&nbsp;</strong></p>
+                        </div>
+                        <div class="card-body">
+                            <a href="${url_for_video}${video.uuid}">
+                                <h6 class="card-title text-white">${video.title}</h6>
+                            </a>
+
+                            <p class="card-text">
+                                ${video.channel}
+                                <span class="card-text">
+                                    <a href="${video.url}">
+                                        <i class="material-icons opacity-10  text-white" style="">open_in_new</i>
+                                    </a>
+                                </span>
+                                <br>Release date: ${video.release_date}
+                            </p>
+
+                            <!-- Watched, Deleted and To Download status with icon -->
+                            <span class="card-text" id="watched-status" data-video-id="${video.id}" data-status-type="watched">
+                                ${watched}
+                            </span>
+                            <span class="card-text" id="deleted-status" data-video-id="${video.id}" data-status-type="deleted">
+                                ${deleted}
+                            </span>
+                            <span class="card-text" id="download-status" data-video-id="${video.id}" data-status-type="to_download">
+                                ${to_download}
+                            </span>
+                            ${file_exist}
+
+                            <!-- Playlists Dropdown -->
+                            <p>
+                                <div class="dropdown float-end">
+                                    ${video.playlistDropdownHtml}
+                                </div>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `);
+        }
+    }
+
+    // Initial rendering of the first 100 videos
+    $(document).ready(function () {
+        if (max_videos >= limit_videos) {
+            renderVideos(0, limit_videos);
+        } else {
+            renderVideos(0, max_videos);
+        }
+    });
+
+    // Function to load more videos
+    function loadMoreVideos() {
+        var currentEndIndex = $('#videos-container').children().length;
+        var nextEndIndex = currentEndIndex + limit_videos;
+
+        // Render the next set of videos
+        if (max_videos >= nextEndIndex) {
+            renderVideos(currentEndIndex, nextEndIndex);
+            loadMoreBtn.style.display = 'block';
+        } else {
+            renderVideos(currentEndIndex, max_videos);
+            loadMoreBtn.style.display = 'none'; // Hide the button
+        }
+    }
+
+    // Attach the loadMoreVideos function to the "Load More" button click event
+    $('#load-more-btn').click(function () {
+        loadMoreVideos();
+    });
 </script>
 
 {% endblock javascripts %}

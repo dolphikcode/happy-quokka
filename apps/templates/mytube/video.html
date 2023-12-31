@@ -11,10 +11,12 @@
     <!-- Video Header with Embedded YouTube Video -->
     <div class="card-header text-center">
         {% if video.file_exist %}
-            <video preload="auto" onloadedmeta='this.play()' id="myVideo" width="320" height="240" controls>
+        <div class="col-lg-10 col-md-12 col-sm-12 mx-auto bg-light p-3">
+            <video preload="auto" onloadedmetadata="this.play()" id="myVideo" controls style="width: 100%;">
                 <source src="{{ video.path }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
+        </div>
         {% else %}
             {% set embedded_url = video.url.replace('https://www.youtube.com/watch?v=', 'https://www.youtube.com/embed/') %}
             <iframe width="560" height="315" src="{{ embedded_url }}" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
@@ -73,6 +75,8 @@
             {% endif %}
         </div>
             <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid) }}" role="button">Push video download</a>
+            <button id="speedUpBtn">Speed Up</button>
+            <button id="speedDownBtn">Speed Down</button>
         </div>
 
         <!-- Chapters Collapse Content -->
@@ -84,6 +88,18 @@
                 {% endfor %}
             </div>
         </div>
+
+        <p class="card-text">
+            <a href="{{ url_for('mytube_blueprint.videos', playlist_uuid='channel', ch=video.channel) }}">
+                {{ video.channel }}
+            </a>
+            <span class="card-text">
+                <a href="{{ video.channel_url }}" target="_blank">
+                    <i class="material-icons opacity-10" style="">open_in_new</i>
+                </a>
+            </span>
+            <br>Release date: {{ video.release_date }}
+        </p>
 
         <!-- Video Description -->
         <h4 class="card-text text-dark">Description:</h4>
@@ -271,6 +287,31 @@ function rewindToTime(time) {
             console.error('Video element not found.');
         }
     }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var video = document.getElementById('myVideo');
+  var speedUpBtn = document.getElementById('speedUpBtn');
+  var speedDownBtn = document.getElementById('speedDownBtn');
+
+  // Set initial speed
+  var currentSpeed = 1.0;
+
+  speedUpBtn.addEventListener('click', function () {
+    // Increase speed
+    currentSpeed += 0.1;
+    video.playbackRate = currentSpeed;
+    console.log('Current Speed: ' + currentSpeed);
+  });
+
+  speedDownBtn.addEventListener('click', function () {
+    // Decrease speed (prevent going below 0.1)
+    currentSpeed = Math.max(0.1, currentSpeed - 0.1);
+    video.playbackRate = currentSpeed;
+    console.log('Current Speed: ' + currentSpeed);
+  });
+});
 </script>
 
 

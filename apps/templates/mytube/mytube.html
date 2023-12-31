@@ -12,6 +12,7 @@
       <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
           <div class="btn-group me-2" role="group" aria-label="First group">
           <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_creator_playlist') }}" role="button">Get info</a>
+          <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.prepare_list') }}" role="button">Prepare list for mobile</a>
           <a class="btn btn-secondary disabled" href="#" role="button">Disabled</a>
         </div>
         <div class="btn-group" role="group" aria-label="Button group">
@@ -36,14 +37,7 @@
                 <h6 class="text-white" >Playlists</h6>
               </div>
               <div class="col-lg-6 col-5 my-auto text-end">
-                <div class="dropdown float-lg-end pe-4">
-                  <a class="cursor-pointer" id="dropdownPlaylists" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="fa fa-ellipsis-v text-white"></i>
-                  </a>
-                  <ul class="dropdown-menu px-2 py-3 ms-sm-n4 ms-n5" aria-labelledby="dropdownPlaylists">
-                    <li><a class="dropdown-item border-radius-md" href="{{ url_for('mytube_blueprint.create_playlist') }}">New Playlist</a></li>
-                  </ul>
-                </div>
+                <a class="btn btn-sm btn-primary" href="{{ url_for('mytube_blueprint.create_playlist') }}" role="button">New Playlist</a>
               </div>
             </div>
           </div>
@@ -60,7 +54,7 @@
                 {% for playlist in playlists %}
                   <tr class="{% if loop.last %}mb-0{% endif %}">
                     <td>
-                      <div class="d-flex px-2 py-1">
+                      <div class="d-flex px-4 py-1">
                         <div class="d-flex flex-column justify-content-center">
                           <h6 class="mb-0 text-sm text-white">{{ playlist.name }}</h6>
                         </div>

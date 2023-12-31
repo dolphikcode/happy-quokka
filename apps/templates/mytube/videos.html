@@ -65,7 +65,6 @@
                 <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='100') }}" >100</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='200') }}" >200</a></li>
                 <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='500') }}" >500</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='all') }}" >all</a></li>
             </ul>
 
         </div>
@@ -74,6 +73,7 @@
     </div>
 
     <!-- Your videos container -->
+    <h1 class="text-center">{{ data.config.title }} ({{ data.config.count }})</h1>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="videos-container">
         <!-- Initial rendering of the first 100 videos will be here -->
     </div>
@@ -96,6 +96,7 @@
 <script>
     const baseUrl = "{{ url_for('static', filename='') }}";
     const url_for_video = "{{ url_for('mytube_blueprint.video', video_uuid='') }}";
+    const url_for_videos = "{{ url_for('mytube_blueprint.videos', playlist_uuid='') }}";
 </script>
 
 <!-- Toggle status of Watched and To_Download-->
@@ -234,9 +235,11 @@
                             </a>
 
                             <p class="card-text">
-                                ${video.channel}
+                                <a href="${url_for_videos}channel?ch=${video.channel}">
+                                    ${video.channel}
+                                </a>
                                 <span class="card-text">
-                                    <a href="${video.url}">
+                                    <a href="${video.url}" target="_blank">
                                         <i class="material-icons opacity-10  text-white" style="">open_in_new</i>
                                     </a>
                                 </span>

@@ -112,3 +112,12 @@ class ApiExchange(db.Model):
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
+
+
+class NewModified(db.Model):
+    __tablename__ = 'YT_new_modified'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_uuid = db.Column(db.String(36), nullable=False)
+    obiekt = db.Column(db.String(20), nullable=False)
+    obiekt_uuid = db.Column(db.String(36), nullable=False)

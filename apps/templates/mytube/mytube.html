@@ -450,21 +450,45 @@
 
 <!-- Tags Modal -->
 <script>
-    function openModal(tagsSelectedStr, videoUUID) {
-        console.log('Opening modal');  // Add this line for debugging
-        console.log('Tags Selected String:', videoUUID);
+async function openModal(videoUUID) {
+    try {
+        const response = await fetch(`{{ url_for('mytube_blueprint.get_selected_tags') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ video_uuid: videoUUID }),
+        });
 
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        tagsSelectedStr = data.tags
         document.getElementById('tagModal').style.display = 'block';
         document.getElementById('overlay').style.display = 'block';
+
+        // Update the onclick attribute
+        var addTagsButton = document.getElementById('addTagsButton');
+        addTagsButton.onclick = function(event) {
+            addTags(event, videoUUID);
+        };
 
         // Check checkboxes based on tags_selected
         var checkboxes = document.getElementsByName('selectedTags');
         checkboxes.forEach(function (checkbox) {
+            // clear checkbox
+            checkbox.checked = false;
+            // select if has tag
             if (tagsSelectedStr.includes(checkbox.value)) {
                 checkbox.checked = true;
             }
         });
+    } catch (error) {
+        console.error('Error:', error);
     }
+}
 
 
     function closeModal() {
@@ -472,7 +496,7 @@
         document.getElementById('overlay').style.display = 'none';
     }
 
-    async function addTags(event) {
+    async function addTags(event, videoUUID) {
         event.stopPropagation(); // Prevents the click event from reaching the overlay
 
         var selectedTags = [];

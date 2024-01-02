@@ -54,6 +54,7 @@ class Tag(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(32), nullable=False)
     user_uuid = db.Column(db.String(36), nullable=False)
+    group = db.Column(db.String(36), nullable=True)
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
 

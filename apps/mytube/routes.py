@@ -104,7 +104,7 @@ def prepare_videos(vids, title, source):
             'playlist_id': playlist.id,
             'playlist_name': playlist.name,
             'playlistDropdownHtml': playlistDropdownHtml,
-            'tags_selected': existing_tags_uuids,
+            # 'tags_selected': existing_tags_uuids,
         }
         videos.append(processed_video)
 
@@ -307,7 +307,7 @@ def video(video_uuid):
     video.modified = func.now()
     db.session.commit()
     chapters = db.session.scalars(db.select(Chapter).filter_by(movie_uuid=video_uuid)).all()
-    tags = db.session.scalars(db.select(Tag).filter_by(user_uuid=current_user.uuid)).all()
+    tags = db.session.scalars(db.select(Tag).filter_by(user_uuid=current_user.uuid).order_by(getattr(Tag, 'group').asc())).all()
     playlist = get_playlist(video.playlist_uuid)
     video_folder = current_app.config['VIDEO_ROOT']
 
@@ -818,3 +818,37 @@ def tag_video():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': 'An error occurred'}), 500
+
+
+
+
+
+
+
+
+
+@blueprint.route('/get_selected_tags', methods=['POST'])
+@login_required
+def get_selected_tags():
+    try:
+        data = request.get_json()
+        video_uuid = data.get('video_uuid', '')
+
+        # Query existing TagVideo objects for the current user and video_uuid
+        existing_tags = TagVideo.query.filter_by(
+            user_uuid=current_user.uuid,
+            video_uuid=video_uuid,
+            status=True,
+        ).all()
+
+        # Extract tag_uuids from existing TagVideo objects
+        existing_tags_uuids = [tag.tag_uuid for tag in existing_tags]
+
+        # Send a response back to the client
+        response_data = {'tags': existing_tags_uuids}
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'An error occurred'}), 500
+

@@ -63,7 +63,7 @@
                         </div>
                     </p>
                     <!-- Button to open the Tags Modal -->
-                    <button class="btn btn-info" onclick="openModal({{ video.tags_selected }}, '{{ video.uuid }}')">Choose Tags</button>
+                    <button class="btn btn-info" onclick="openModal('{{ video.uuid }}')">Choose Tags</button>
                 </div>
             </div>
         </div>
@@ -76,16 +76,21 @@
         <h3 class="card-title">Select Tags</h3>
     </div>
     <div class="card-body modal-content">
-        <!-- Assuming you have a list of available tags passed from the Flask route -->
-        {% for tag in tags %}
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" name="selectedTags" value="{{ tag.uuid }}">
-                <label class="form-check-label">{{ tag.name }}</label>
+        {% set grouped_tags = tags | rejectattr('group', 'equalto', None) | groupby('group') %}
+        {% for group, group_tags in grouped_tags %}
+            <div class="group">
+                <p>{{ group }}</p>
+                {% for tag in group_tags %}
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="selectedTags" value="{{ tag.uuid }}">
+                        <label class="form-check-label">{{ tag.name }}</label>
+                    </div>
+                {% endfor %}
             </div>
         {% endfor %}
     </div>
     <div class="card-footer">
-        <button class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Tags</button>
+        <button id="addTagsButton" class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Tags</button>
     </div>
 </div>
 

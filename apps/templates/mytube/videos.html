@@ -4,40 +4,7 @@
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
-    <style>
-        /* Style for the modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px;
-            background-color: #fff;
-            z-index: 1;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Style for the overlay */
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1;
-        }
-
-        /* Style for the close button */
-        .close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            cursor: pointer;
-        }
-    </style>
+    <link href="{{ url_for('static', filename='assets/css/modal-window.css') }}" rel="stylesheet" />
 {% endblock stylesheets %}
 
 {% block content %}
@@ -117,6 +84,34 @@
         <button class="btn btn-secondary" id="load-more-btn">Load More</button>
     {% endif %}
 </div>
+
+<!-- Tags Modal -->
+<div id="tagModal" class="modal card">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <div class="card-header">
+        <h3 class="card-title">Select Tags</h3>
+    </div>
+    <div class="card-body modal-content">
+        {% set grouped_tags = tags | rejectattr('group', 'equalto', None) | groupby('group') %}
+        {% for group, group_tags in grouped_tags %}
+            <div class="group">
+                <p>{{ group }}</p>
+                {% for tag in group_tags %}
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="selectedTags" value="{{ tag.uuid }}">
+                        <label class="form-check-label">{{ tag.name }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="card-footer">
+        <button id="addTagsButton" class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Tags</button>
+    </div>
+</div>
+
+<!-- The Overlay -->
+<div id="overlay" class="overlay" onclick="closeModal()"></div>
 
 </body>
 
@@ -252,6 +247,7 @@
             var file_exist = video.file_exist ?
                     '<span class="card-text"><i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i></span>' :
                     '';
+            var tagsSelected = video.tags_selected;
             // Append the video HTML to the container
             videosContainer.append(`
                <div class="col">
@@ -299,6 +295,8 @@
                                     ${video.playlistDropdownHtml}
                                 </div>
                             </p>
+                            <!-- Button to open the Tags Modal -->
+                            <button class="btn btn-info" onclick="openModal(\'${video.uuid}\')">Choose Tags</button>
                         </div>
                     </div>
                 </div>
@@ -334,6 +332,99 @@
     $('#load-more-btn').click(function () {
         loadMoreVideos();
     });
+</script>
+
+
+
+
+
+<!-- Tags Modal -->
+<script>
+async function openModal(videoUUID) {
+    try {
+        const response = await fetch(`{{ url_for('mytube_blueprint.get_selected_tags') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ video_uuid: videoUUID }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        tagsSelectedStr = data.tags
+        document.getElementById('tagModal').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+
+        // Update the onclick attribute
+        var addTagsButton = document.getElementById('addTagsButton');
+        addTagsButton.onclick = function(event) {
+            addTags(event, videoUUID);
+        };
+
+        // Check checkboxes based on tags_selected
+        var checkboxes = document.getElementsByName('selectedTags');
+        checkboxes.forEach(function (checkbox) {
+            // clear checkbox
+            checkbox.checked = false;
+            // select if has tag
+            if (tagsSelectedStr.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+
+    function closeModal() {
+        document.getElementById('tagModal').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    async function addTags(event, videoUUID) {
+        event.stopPropagation(); // Prevents the click event from reaching the overlay
+
+        var selectedTags = [];
+        var checkboxes = document.getElementsByName('selectedTags');
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                selectedTags.push(checkbox.value);
+            }
+        });
+
+        // Handle the selected tags (you can send them to the server using fetch)
+        console.log('Selected Tags:', selectedTags);
+
+        // Send data to Flask route using fetch
+        try {
+            const response = await fetch(`{{ url_for('mytube_blueprint.tag_video') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tags: selectedTags,
+                                       video_uuid: videoUUID }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Close the modal
+        closeModal();
+    }
 </script>
 
 {% endblock javascripts %}

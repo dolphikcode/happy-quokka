@@ -1,0 +1,54 @@
+/* Style for the modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    max-height: 90vh;
+    /* overflow-y: auto; Add scrollbars if the content overflows */
+    padding: 20px;
+    background-color: #fff;
+    z-index: 1;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+    transform: translate(-50%, -50%);
+}
+
+/* Style for the modal content */
+.modal-content {
+    margin-top: 0px; /* Add margin to the top */
+    margin-bottom: auto; /* Push content to the top */
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+/* Style for the "Add Tags" button */
+.add-tags-button {
+    position: fixed; /* Stick to the bottom of the window */
+    left: 50%; /* Center horizontally */
+    bottom: 5px;
+    transform: translateX(-50%); /* Center horizontally */
+    z-index: 2; /* Ensure the button is above the modal */
+}
+
+
+/* Style for the overlay */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 0;
+}
+
+/* Style for the close button */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    cursor: pointer;
+    font-size: 24px;
+}

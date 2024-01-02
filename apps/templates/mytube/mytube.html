@@ -3,7 +3,9 @@
 {% block title %} Dashboard {% endblock %}
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+    <link href="{{ url_for('static', filename='assets/css/modal-window.css') }}" rel="stylesheet" />
+{% endblock stylesheets %}
 
 {% block content %}
 <div class="container mt-5 mb-4">
@@ -443,6 +445,70 @@
         .catch(error => {
             console.error('Error adding video to playlist:', error);
         });
+    }
+</script>
+
+<!-- Tags Modal -->
+<script>
+    function openModal(tagsSelectedStr, videoUUID) {
+        console.log('Opening modal');  // Add this line for debugging
+        console.log('Tags Selected String:', videoUUID);
+
+        document.getElementById('tagModal').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+
+        // Check checkboxes based on tags_selected
+        var checkboxes = document.getElementsByName('selectedTags');
+        checkboxes.forEach(function (checkbox) {
+            if (tagsSelectedStr.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    }
+
+
+    function closeModal() {
+        document.getElementById('tagModal').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    async function addTags(event) {
+        event.stopPropagation(); // Prevents the click event from reaching the overlay
+
+        var selectedTags = [];
+        var checkboxes = document.getElementsByName('selectedTags');
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                selectedTags.push(checkbox.value);
+            }
+        });
+
+        // Handle the selected tags (you can send them to the server using fetch)
+        console.log('Selected Tags:', selectedTags);
+
+        // Send data to Flask route using fetch
+        try {
+            const response = await fetch(`{{ url_for('mytube_blueprint.tag_video') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tags: selectedTags,
+                                       video_uuid: videoUUID }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Close the modal
+        closeModal();
     }
 </script>
 

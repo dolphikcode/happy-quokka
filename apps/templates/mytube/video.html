@@ -3,7 +3,9 @@
 {% block title %} Dashboard {% endblock %}
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+    <link href="{{ url_for('static', filename='assets/css/modal-window.css') }}" rel="stylesheet" />
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -88,6 +90,34 @@
                 {% endfor %}
             </div>
         </div>
+
+        <!-- Button to open the Tags Modal -->
+        <button class="btn btn-info" onclick="openModal({{ video.tags_selected }})">Choose Tags</button>
+
+
+        <!-- Tags Modal -->
+        <div id="tagModal" class="modal card">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div class="card-header">
+                <h3 class="card-title">Select Tags</h3>
+            </div>
+            <div class="card-body modal-content">
+                <!-- Assuming you have a list of available tags passed from the Flask route -->
+                {% for tag in tags %}
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="selectedTags" value="{{ tag.uuid }}">
+                        <label class="form-check-label">{{ tag.name }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="card-footer">
+                <button class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Tags</button>
+            </div>
+        </div>
+
+
+        <!-- The Overlay -->
+        <div id="overlay" class="overlay" onclick="closeModal()"></div>
 
         <p class="card-text">
             <a href="{{ url_for('mytube_blueprint.videos', playlist_uuid='channel', ch=video.channel) }}">
@@ -312,6 +342,73 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Current Speed: ' + currentSpeed);
   });
 });
+</script>
+
+<!-- Tags Modal -->
+<script>
+    function openModal(tagsSelectedStr) {
+        console.log('Opening modal');  // Add this line for debugging
+        console.log('Tags Selected String:', tagsSelectedStr);
+
+        document.getElementById('tagModal').style.display = 'block';
+        document.getElementById('overlay').style.display = 'block';
+
+        // Check checkboxes based on tags_selected
+        var checkboxes = document.getElementsByName('selectedTags');
+        checkboxes.forEach(function (checkbox) {
+            if (tagsSelectedStr.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    }
+
+
+    function closeModal() {
+        document.getElementById('tagModal').style.display = 'none';
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    async function addTags(event) {
+        event.stopPropagation(); // Prevents the click event from reaching the overlay
+
+        var selectedTags = [];
+        var checkboxes = document.getElementsByName('selectedTags');
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                selectedTags.push(checkbox.value);
+            }
+        });
+
+        // Get the video UUID from your page, replace 'your_video_uuid' with the actual value
+        var videoUUID = "{{ video.uuid }}";
+
+        // Handle the selected tags (you can send them to the server using fetch)
+        console.log('Selected Tags:', selectedTags);
+
+        // Send data to Flask route using fetch
+        try {
+            const response = await fetch(`{{ url_for('mytube_blueprint.tag_video') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tags: selectedTags,
+                                       video_uuid: videoUUID }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Close the modal
+        closeModal();
+    }
 </script>
 
 

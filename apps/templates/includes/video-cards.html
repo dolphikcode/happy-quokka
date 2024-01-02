@@ -62,7 +62,33 @@
                             </ul>
                         </div>
                     </p>
+                    <!-- Button to open the Tags Modal -->
+                    <button class="btn btn-info" onclick="openModal({{ video.tags_selected }}, '{{ video.uuid }}')">Choose Tags</button>
                 </div>
             </div>
         </div>
     {% endfor %}
+
+<!-- Tags Modal -->
+<div id="tagModal" class="modal card">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <div class="card-header">
+        <h3 class="card-title">Select Tags</h3>
+    </div>
+    <div class="card-body modal-content">
+        <!-- Assuming you have a list of available tags passed from the Flask route -->
+        {% for tag in tags %}
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="selectedTags" value="{{ tag.uuid }}">
+                <label class="form-check-label">{{ tag.name }}</label>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="card-footer">
+        <button class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Tags</button>
+    </div>
+</div>
+
+
+<!-- The Overlay -->
+<div id="overlay" class="overlay" onclick="closeModal()"></div>

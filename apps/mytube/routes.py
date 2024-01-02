@@ -70,6 +70,16 @@ def prepare_videos(vids, title, source):
                                 f"class=\"dropdown-menu\" aria-labelledby=\"playlistDropdown{v.id}\">"
                                 f"{plisthtml}</ul>")
 
+        # Query existing TagVideo objects for the current user and video_uuid
+        existing_tags = TagVideo.query.filter_by(
+            user_uuid=current_user.uuid,
+            video_uuid=v.uuid,
+            status=True
+        ).all()
+
+        # Extract tag_uuids from existing TagVideo objects
+        existing_tags_uuids = [tag.tag_uuid for tag in existing_tags]
+
         processed_video = {
             'id': v.id,
             'youtube_id': v.youtube_id,
@@ -93,7 +103,8 @@ def prepare_videos(vids, title, source):
             'uuid': v.uuid,
             'playlist_id': playlist.id,
             'playlist_name': playlist.name,
-            'playlistDropdownHtml': playlistDropdownHtml
+            'playlistDropdownHtml': playlistDropdownHtml,
+            'tags_selected': existing_tags_uuids,
         }
         videos.append(processed_video)
 
@@ -170,6 +181,7 @@ def mytube():
                            data=prepare_videos(videos, "All Videos", 'random'),
                            segment='mytube',
                            playlists=get_playlists(),
+                           tags=db.session.scalars(db.select(Tag).filter_by(user_uuid=current_user.uuid)).all()
                            )
 
 
@@ -274,6 +286,7 @@ def videos(playlist_uuid):
                            data=prepare_videos(videos, title, source),
                            segment=segment,
                            playlists=get_playlists(),
+                           tags=db.session.scalars(db.select(Tag).filter_by(user_uuid=current_user.uuid)).all()
                            )
     # return render_template('mytube/videos.html',
     #                        title=playlist.name,
@@ -294,6 +307,7 @@ def video(video_uuid):
     video.modified = func.now()
     db.session.commit()
     chapters = db.session.scalars(db.select(Chapter).filter_by(movie_uuid=video_uuid)).all()
+    tags = db.session.scalars(db.select(Tag).filter_by(user_uuid=current_user.uuid)).all()
     playlist = get_playlist(video.playlist_uuid)
     video_folder = current_app.config['VIDEO_ROOT']
 
@@ -302,6 +316,16 @@ def video(video_uuid):
     fname = os.path.join(video_folder, f'{video.youtube_id}.mp4')
     if (os.path.isfile(fname)):
         file_found = True
+
+    # Query existing TagVideo objects for the current user and video_uuid
+    existing_tags = TagVideo.query.filter_by(
+        user_uuid=current_user.uuid,
+        video_uuid=video_uuid,
+        status=True
+    ).all()
+
+    # Extract tag_uuids from existing TagVideo objects
+    existing_tags_uuids = [tag.tag_uuid for tag in existing_tags]
 
     processed_video = {
         'id': video.id,
@@ -326,11 +350,13 @@ def video(video_uuid):
         'rate': video.rate,
         'playlist_id': playlist.id,
         'playlist_name': playlist.name,
+        'tags_selected': existing_tags_uuids,
     }
 
     return render_template('mytube/video.html',
                            video=processed_video,
                            chapters=chapters,
+                           tags=tags,
                            playlists=get_playlists(),
                            convert_seconds_to_hms=convert_seconds_to_hms,
                            segment='mytube')
@@ -433,7 +459,7 @@ def convert_seconds_to_hms(seconds):
     # Format the duration based on the presence of hours
     if hours > 0:
         if hours > 99:
-            return f"{hours:03d}:{minutes:02d}:{seconds:02d}"
+            return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
         else:
             return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
     else:
@@ -736,3 +762,59 @@ def prepare_list():
 
 
     return json.dumps(videos)
+
+
+@blueprint.route('/tag_video', methods=['POST'])
+@login_required
+def tag_video():
+    try:
+        data = request.get_json()
+        tags_selected = data.get('tags', [])
+        video_uuid = data.get('video_uuid', '')
+
+        # Query existing TagVideo objects for the current user and video_uuid
+        existing_tags = TagVideo.query.filter_by(
+            user_uuid=current_user.uuid,
+            video_uuid=video_uuid
+        ).all()
+
+        # Extract tag_uuids from existing TagVideo objects
+        existing_tags_uuids = [tag.tag_uuid for tag in existing_tags]
+
+        # Identify tags to be added, updated, and deleted
+        tags_to_add = set(tags_selected) - set(existing_tags_uuids)
+        tags_to_delete = set(existing_tags_uuids) - set(tags_selected)
+
+        # Create new TagVideo entries for tags to be added
+        for tag_uuid in tags_to_add:
+            new_tag_video = TagVideo(
+                tag_uuid=tag_uuid,
+                video_uuid=video_uuid,
+                user_uuid=current_user.uuid,
+                uuid=str(uuid.uuid4()),
+                status=True
+            )
+            db.session.add(new_tag_video)
+
+        # Update status for existing TagVideo entries with selected tags
+        for tag_video in existing_tags:
+            if tag_video.tag_uuid in tags_selected:
+                tag_video.status = True
+            else:
+                # Update status for TagVideo entries to be deleted
+                tag_video.status = False
+            tag_video.modified = func.now()
+
+        # Commit changes to the database
+        db.session.commit()
+
+        # For example, print the received data
+        print(f"Received data - Video UUID: {video_uuid}, Tags: {tags_selected}")
+
+        # You can send a response back to the client
+        response_data = {'message': 'Tags processed successfully'}
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'An error occurred'}), 500

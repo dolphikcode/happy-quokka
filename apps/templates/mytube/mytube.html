@@ -15,7 +15,7 @@
           <div class="btn-group me-2" role="group" aria-label="First group">
           <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_creator_playlist') }}" role="button">Get info</a>
           <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.prepare_list') }}" role="button">Prepare list for mobile</a>
-          <a class="btn btn-secondary disabled" href="#" role="button">Disabled</a>
+          <a class="btn btn-secondary" href="{{ url_for('mytube_blueprint.clean_deleted') }}" role="button">Clean deleted</a>
         </div>
         <div class="btn-group" role="group" aria-label="Button group">
           <a class="btn btn-info " href="{{ url_for('mytube_blueprint.download_movies') }}" role="button">Download movies</a>

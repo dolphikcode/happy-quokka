@@ -855,6 +855,23 @@ def download_movie(video_uuid, quality):
     return redirect(url_for('mytube_blueprint.video', video_uuid=video_uuid))  # Redirect after processing
 
 
+@blueprint.route('/clean_deleted', methods=['GET'])
+@login_required
+def clean_deleted():
+    # Call the API with playlist_id and add_to_database
+    api_link = current_app.config['API_LINK']
+    api_url = f'{api_link}/clean_deleted/{current_user.id}'
+
+    # Example using the requests library
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        print(response)
+    else:
+        print(response)
+
+    return redirect(url_for('mytube_blueprint.mytube'))  # Redirect after processing
+
+
 @blueprint.route('/prepare_list')
 @login_required
 def prepare_list():

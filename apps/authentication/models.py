@@ -16,6 +16,8 @@ class Users(db.Model, UserMixin):
     username = db.Column(db.String(64), unique=True)
     email = db.Column(db.String(64), unique=True)
     password = db.Column(db.LargeBinary)
+    created = db.Column(db.DateTime, default=func.now())
+    modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=True)
 
     def __init__(self, **kwargs):

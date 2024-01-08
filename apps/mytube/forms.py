@@ -10,3 +10,12 @@ class PlaylistForm(FlaskForm):
                        id='playlist_name',
                        validators=[DataRequired()])
     submit = SubmitField('Create Playlist')
+
+
+class TagForm(FlaskForm):
+    name = StringField('Tag Name',
+                       id='tag_name',
+                       validators=[DataRequired()])
+    group = StringField('Tag Group',
+                       id='tag_group')
+    submit = SubmitField('Create Tag')

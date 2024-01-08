@@ -5,6 +5,11 @@
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
     <link href="{{ url_for('static', filename='assets/css/modal-window.css') }}" rel="stylesheet" />
+    <style>
+    .no-arrow::after {
+        display: none !important;
+    }
+    </style>
 {% endblock stylesheets %}
 
 {% block content %}
@@ -26,14 +31,39 @@
     </div>
 
     <!-- Video Title -->
-    <h3 class="card-title text-black">{{ video.title }}</h3>
+    <h3 class="card-title text-black position-relative">
+        {{ video.title }}
+    </h3>
 
     <!-- Video Body -->
     <div class="card-body text-dark">
-        <div style="display: flex; justify-content: flex-start; align-items: center;">
+        <div class="btn-toolbar" role="toolbar" aria-label="Toolbar">
+
+        {% if video.file_exist %}
+            <div class="btn-group me-1" role="group">
+                <button class="btn btn-info" id="speedUpBtn" style="padding-left: 0.4rem; padding-right: 0.4rem;">Speed Up</button>
+                <button class="btn btn-warning" id="speedDownBtn" style="padding-left: 0.4rem; padding-right: 0.4rem;">Speed Down</button>
+            </div>
+        {% endif %}
+
+        <!-- Chapters Collapse Button -->
+        {% if chapters %}
+            <button class="btn btn-primary me-1" type="button" data-bs-toggle="collapse" data-bs-target="#chaptersCollapse" aria-expanded="false" aria-controls="chaptersCollapse" style="padding-left: 0.4rem; padding-right: 0.4rem;">
+                Chapters
+            </button>
+        {% endif %}
+        <div class="collapse" id="chaptersCollapse">
+            <div class="card card-body">
+                <!-- Display Chapters Here -->
+                {% for chapter in chapters %}
+                    <p><a href="#" onclick="rewindToTime({{ chapter.start }})">{{ convert_seconds_to_hms(chapter.start) }}</a> - {{ chapter.name }}</p>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- Playlists Dropdown -->
         <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown{{ video.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown{{ video.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"  style="padding-left: 0.5rem; padding-right: 0.5rem;">
                 <!-- Playlist name or "Add to playlist" -->
                 {% if video.playlist_id %}
                     {{ (video.playlist_name[:50] + '..') if video.playlist_name|length > 50 else video.playlist_name }}
@@ -50,17 +80,29 @@
             </ul>
         </div>
 
-        <!-- Chapters Collapse Button -->
-        {% if chapters %}
-            <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#chaptersCollapse" aria-expanded="false" aria-controls="chaptersCollapse">
-                Chapters
-            </button>
-        {% endif %}
+        <!-- Button to open the Tags Modal -->
+        <div class="btn-group me-1" role="group">
+            <span class="btn btn-outline-light" id="tags" data-video-id="tags" data-status-type="tags" style="padding-left: 0.5rem; padding-right: 0.5rem;">
+                <i class="material-icons opacity-10" onclick="openModal({{ video.tags_selected }})" style="{% if video.tags_selected %}color:green;">tag{% else %}color:black;">tag{% endif %}</i>
+            </span>
 
+            <div class="dropdown">
+                <button class="btn btn-outline-light dropdown-toggle no-arrow" type="button" id="more-items" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"  style="color:black;padding-left: 0.5rem; padding-right: 0.5rem;">
+                    &vellip;
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="more-items">
+                    {% if not video.file_exist %}
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='720') }}" >Push download (720P)</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='1080') }}" >Push download (1080P)</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='1440') }}" >Push download (1440P)</a></li>
+                    {% endif %}
+                    <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='9999') }}" >Push download (MAX)</a></li>
+                </ul>
+            </div>
+        </div>
 
         <!-- Watched, To Download, and Deleted Icons -->
-<!--            <div class="float-end">-->
-        <div class="">
+        <div class="btn-group me-1" role="group">
             <span class="card-text" id="watched-status" data-video-id="{{ video.id }}" data-status-type="watched">
                 <i class="material-icons opacity-10" onclick="toggleStatus(this, 'watched')" style="font-size:32px;{% if video.watched %}color:green;">visibility{% else %}">visibility_off{% endif %}</i>
             </span>
@@ -76,24 +118,8 @@
                 </span>
             {% endif %}
         </div>
-            <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid) }}" role="button">Push video download</a>
-            <button id="speedUpBtn">Speed Up</button>
-            <button id="speedDownBtn">Speed Down</button>
+
         </div>
-
-        <!-- Chapters Collapse Content -->
-        <div class="collapse" id="chaptersCollapse">
-            <div class="card card-body">
-                <!-- Display Chapters Here -->
-                {% for chapter in chapters %}
-                    <p><a href="#" onclick="rewindToTime({{ chapter.start }})">{{ convert_seconds_to_hms(chapter.start) }}</a> - {{ chapter.name }}</p>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Button to open the Tags Modal -->
-        <button class="btn btn-info" onclick="openModal({{ video.tags_selected }})">Choose Tags</button>
-
 
         <!-- Tags Modal -->
         <div id="tagModal" class="modal card">
@@ -134,10 +160,31 @@
                 </a>
             </span>
             <br>Release date: {{ video.release_date }}
+            <br>
+            <span class="card-text" id="star_1" data-video-id="{{ video.id }}" data-stars-amount="1">
+                <i id="i_star_1" class="material-icons opacity-10" onclick="toggleStars(this, '1')" style="font-size:32px;{% if video.rate and video.rate >= 1 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+            </span>
+            <span class="card-text" id="star_2" data-video-id="{{ video.id }}" data-stars-amount="2">
+                <i id="i_star_2" class="material-icons opacity-10" onclick="toggleStars(this, '2')" style="font-size:32px;{% if video.rate and video.rate >= 2 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+            </span>
+            <span class="card-text" id="star_3" data-video-id="{{ video.id }}" data-stars-amount="3">
+                <i id="i_star_3" class="material-icons opacity-10" onclick="toggleStars(this, '3')" style="font-size:32px;{% if video.rate and video.rate >= 3 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+            </span>
+            <span class="card-text" id="star_4" data-video-id="{{ video.id }}" data-stars-amount="4">
+                <i id="i_star_4" class="material-icons opacity-10" onclick="toggleStars(this, '4')" style="font-size:32px;{% if video.rate and video.rate >= 4 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+            </span>
+            <span class="card-text" id="star_5" data-video-id="{{ video.id }}" data-stars-amount="5">
+                <i id="i_star_5" class="material-icons opacity-10" onclick="toggleStars(this, '5')" style="font-size:32px;{% if video.rate and video.rate == 5 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+            </span>
         </p>
 
         <!-- Video Description -->
         <h4 class="card-text text-dark">Description:</h4>
+        <p>
+            {% for t in video.tags_selected_names %}
+                <a class="btn btn-sm btn-warning rounded-pill "href="#"style="font-size:10px;" >#{{ t }}</a>
+            {% endfor %}
+        </p>
         {% for line in video.description.split('\n') %}
             <p class="card-text text-dark">{{ line }}</p>
         {% endfor %}
@@ -205,6 +252,73 @@
     }
 </script>
 
+<!-- Toggle Stars-->
+<script>
+    function toggleStars(element) {
+        const videoId = element.parentElement.dataset.videoId;
+        const starsAmount = element.parentElement.dataset.starsAmount;
+
+        // Make an asynchronous request to update the stars
+        fetch('{{ url_for('mytube_blueprint.update_stars') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `video_id=${videoId}&stars=${starsAmount}`,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the image source based on the new status
+                var s1 = document.getElementById('i_star_1');
+                var s2 = document.getElementById('i_star_2');
+                var s3 = document.getElementById('i_star_3');
+                var s4 = document.getElementById('i_star_4');
+                var s5 = document.getElementById('i_star_5');
+                if (starsAmount >= 1) {
+                    s1.style = 'font-size:32px;color:#ffdc14;';
+                    }
+                else {
+                    s1.style = 'font-size:32px;';
+                    }
+
+                if (starsAmount >= 2) {
+                    s2.style = 'font-size:32px;color:#ffdc14;';
+                    }
+                else {
+                    s2.style = 'font-size:32px;';
+                    }
+
+                if (starsAmount >= 3) {
+                    s3.style = 'font-size:32px;color:#ffdc14;';
+                    }
+                else {
+                    s3.style = 'font-size:32px;';
+                    }
+
+                if (starsAmount >= 4) {
+                    s4.style = 'font-size:32px;color:#ffdc14;';
+                    }
+                else {
+                    s4.style = 'font-size:32px;';
+                    }
+
+                if (starsAmount == 5) {
+                    s5.style = 'font-size:32px;color:#ffdc14;';
+                    }
+                else {
+                    s5.style = 'font-size:32px;';
+                    }
+            } else {
+                console.error('Failed to update status.');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating status:', error);
+        });
+    }
+</script>
+
 <!-- Add video to the playlist -->
 <script>
     function addToPlaylist(videoId, playlistId, playlistName) {
@@ -234,6 +348,7 @@
     }
 </script>
 
+<!-- Save video position -->
 <script>
 var video = document.getElementById("myVideo");
 var videoId = {{ video.id }};
@@ -324,6 +439,7 @@ function rewindToTime(time) {
     }
 </script>
 
+<!-- Load video position -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var video = document.getElementById('myVideo');

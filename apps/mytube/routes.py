@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import os.path
 
-from apps.mytube.forms import PlaylistForm
+from apps.mytube.forms import PlaylistForm, TagForm
 from apps.mytube.models import *
 from apps.authentication.models import UserConfig
 
@@ -46,9 +46,12 @@ def prepare_videos(vids, title, source):
 
         # Check if downloaded file exists
         file_found = False
-        fname = os.path.join(video_folder, f'{v.youtube_id}.mp4')
-        if (os.path.isfile(fname)):
+        video_path = ''
+        fname1 = os.path.join(video_folder, f'{v.youtube_id}.mp4')
+        fname2 = os.path.join(video_folder, f'{v.youtube_id}.webm')
+        if os.path.isfile(fname1) or os.path.isfile(fname2):
             file_found = True
+
         if sort_atributes['filter_downloaded'] != 'all' and source != 'random':
             if file_found != str2bool(sort_atributes['filter_downloaded']):
                 continue
@@ -104,7 +107,7 @@ def prepare_videos(vids, title, source):
             'playlist_id': playlist.id,
             'playlist_name': playlist.name,
             'playlistDropdownHtml': playlistDropdownHtml,
-            # 'tags_selected': existing_tags_uuids,
+            'tags_selected': existing_tags_uuids,
         }
         videos.append(processed_video)
 
@@ -273,6 +276,12 @@ def videos(playlist_uuid):
         .order_by(
             getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
                   .all())
+    elif playlist_uuid == 'history':
+        videos = (db.session.query(Video)
+                  .filter(Video.user_uuid == current_user.uuid,
+                          Video.last_visited.isnot(None))
+                  .order_by(desc(Video.last_visited))
+                  .all())
     else:
         videos = (db.session.scalars(db.select(Video)
         .filter_by(user_uuid=current_user.uuid)
@@ -313,9 +322,15 @@ def video(video_uuid):
 
     # Check if downloaded file exists
     file_found = False
-    fname = os.path.join(video_folder, f'{video.youtube_id}.mp4')
-    if (os.path.isfile(fname)):
+    video_path = ''
+    fname1 = os.path.join(video_folder, f'{video.youtube_id}.mp4')
+    fname2 = os.path.join(video_folder, f'{video.youtube_id}.webm')
+    if os.path.isfile(fname1):
         file_found = True
+        video_path = url_for('static', filename=f'videos/{video.youtube_id}.mp4')
+    elif os.path.isfile(fname2):
+        file_found = True
+        video_path = url_for('static', filename=f'videos/{video.youtube_id}.webm')
 
     # Query existing TagVideo objects for the current user and video_uuid
     existing_tags = TagVideo.query.filter_by(
@@ -327,6 +342,10 @@ def video(video_uuid):
     # Extract tag_uuids from existing TagVideo objects
     existing_tags_uuids = [tag.tag_uuid for tag in existing_tags]
 
+    existing_tags_names = []
+    for et in existing_tags_uuids:
+        existing_tags_names.append(db.session.scalars(db.select(Tag).filter_by(uuid=et)).first().name)
+
     processed_video = {
         'id': video.id,
         'uuid': video.uuid,
@@ -337,7 +356,7 @@ def video(video_uuid):
         'description': json.loads(video.description),
         'channel': video.channel,
         'channel_url': video.channel_url,
-        'path': url_for('static', filename=f'videos/{video.youtube_id}.mp4'),
+        'path': video_path,
         'duration': convert_seconds_to_hms(video.duration),
         'watched': video.watched,
         'deleted': video.deleted,
@@ -351,6 +370,7 @@ def video(video_uuid):
         'playlist_id': playlist.id,
         'playlist_name': playlist.name,
         'tags_selected': existing_tags_uuids,
+        'tags_selected_names': existing_tags_names,
     }
 
     return render_template('mytube/video.html',
@@ -372,7 +392,6 @@ def create_playlist():
             user_uuid=current_user.uuid,
             name=form.name.data,
             last_used=func.now(),
-            created=func.now(),
             modified=func.now(),
             uuid=str(uuid.uuid4())
         )
@@ -435,6 +454,57 @@ def get_playlist_name(playlist_id):
         return ''
 
 
+@blueprint.route('/tag/create', methods=['GET', 'POST'])
+@login_required
+def create_tag():
+    form = TagForm()
+
+    if form.validate_on_submit():
+        new_tag = Tag(
+            user_uuid=current_user.uuid,
+            name=form.name.data,
+            group=form.group.data,
+            modified=func.now(),
+            uuid=str(uuid.uuid4())
+        )
+        db.session.add(new_tag)
+
+        # Info for synchronization
+        new_modified = NewModified(
+            user_uuid=current_user.uuid,
+            obiekt='tag',
+            obiekt_uuid=new_tag.uuid,
+        )
+        db.session.add(new_modified)
+
+        db.session.commit()
+        return redirect(url_for('mytube_blueprint.mytube'))
+
+    return render_template('mytube/create_tag.html', form=form)
+
+
+@blueprint.route('/tag/<int:tag_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_tag(tag_id):
+    form = TagForm()
+    tag = Tag.query.get(tag_id)
+    if request.method == 'POST':
+        tag.name = request.form['name']
+        tag.group = request.form['group']
+
+        # Info for synchronization
+        new_modified = NewModified(
+            user_uuid=current_user.uuid,
+            obiekt='tag',
+            obiekt_uuid=tag.uuid,
+        )
+        db.session.add(new_modified)
+
+        db.session.commit()
+        return redirect(url_for('mytube_blueprint.mytube'))
+    return render_template('mytube/create_tag.html', tag=tag, form=form)
+
+
 # Route to display video thumbnail
 @blueprint.route('/video_thumbnail/<int:video_id>')
 @login_required
@@ -474,6 +544,53 @@ def convert_int_date_to_iso(int_date):
     day = date_str[6:]
     iso_date = f"{year}-{month}-{day}"
     return iso_date
+
+
+# Route to handle stars updates
+@blueprint.route('/update_stars', methods=['POST'])
+@login_required
+def update_stars():
+    try:
+        video_id = request.form.get('video_id')
+        stars = request.form.get('stars')
+
+        success, updated_stars = toggle_stars(video_id, stars)
+
+        if success:
+            return jsonify({'success': True, 'new_status': updated_stars})
+        else:
+            return jsonify({'success': False, 'message': 'Failed to update stars'})
+    except Exception as e:
+        # Log the exception for debugging
+        print(f"Error updating status: {str(e)}")
+        db.session.rollback()  # Rollback changes in case of an error
+        return jsonify({'success': False, 'message': 'An error occurred while updating stars'})
+
+
+def toggle_stars(video_id, stars):
+    try:
+        video = Video.query.get(video_id)
+        video.rate = int(stars)
+        updated_stars = video.rate
+        video.modified = func.now()
+        video.last_visited = func.now()
+
+        # Info for synchronization
+        new_modified = NewModified(
+            user_uuid=current_user.uuid,
+            obiekt='video',
+            obiekt_uuid=video.uuid,
+        )
+        db.session.add(new_modified)
+
+        db.session.commit()
+
+        return True, updated_stars  # Return success and updated status
+    except Exception as e:
+        # Log the exception for debugging
+        print(f"Error toggling status: {str(e)}")
+        db.session.rollback()  # Rollback changes in case of an error
+        return False, None
 
 
 # Route to handle status updates
@@ -722,11 +839,11 @@ def download_cancel():
     return redirect(url_for('mytube_blueprint.mytube'))  # Redirect after processing
 
 
-@blueprint.route('/download_movie/<video_uuid>', methods=['GET'])
-def download_movie(video_uuid):
+@blueprint.route('/download_movie/<video_uuid>/<quality>', methods=['GET'])
+def download_movie(video_uuid, quality):
     # Call the API with playlist_id and add_to_database
     api_link = current_app.config['API_LINK']
-    api_url = f'{api_link}/download_movie/{video_uuid}'
+    api_url = f'{api_link}/download_movie/{video_uuid}/{quality}'
 
     # Example using the requests library
     response = requests.get(api_url)

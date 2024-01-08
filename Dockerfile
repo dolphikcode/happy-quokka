@@ -12,8 +12,8 @@ COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-# install python dependencies
-RUN apt-get update && apt-get install -y nano
+# install nano editor
+# RUN apt-get update && apt-get install -y nano && apt clean && apt-get clean
 
 COPY . .
 

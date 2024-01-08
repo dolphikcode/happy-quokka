@@ -254,14 +254,14 @@
                     <div class="card h-100 bg-gradient-dark">
                         <div class="position-relative">
                             <!-- Video thumbnail -->
-                            <a href=${url_for_video}${video.uuid}>
+                            <a href="${url_for_video}${video.uuid}" target="_blank">
                                 <img src="${video.thumbnail}" class="card-img-top" alt="Thumbnail">
                             </a>
                             <!-- Video duration -->
                             <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;${video.duration}&nbsp;</strong></p>
                         </div>
                         <div class="card-body">
-                            <a href="${url_for_video}${video.uuid}">
+                            <a href="${url_for_video}${video.uuid}" target="_blank">
                                 <h6 class="card-title text-white">${video.title}</h6>
                             </a>
 

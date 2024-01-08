@@ -17,16 +17,24 @@
 <div class="card">
     <!-- Video Header with Embedded YouTube Video -->
     <div class="card-header text-center">
-        {% if video.file_exist %}
+        {% if video.video_exist %}
         <div class="col-lg-10 col-md-12 col-sm-12 mx-auto bg-light p-3">
             <video preload="auto" onloadedmetadata="this.play()" id="myVideo" controls style="width: 100%;">
-                <source src="{{ video.path }}" type="video/mp4">
+                <source src="{{ video.video_path }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
         </div>
         {% else %}
             {% set embedded_url = video.url.replace('https://www.youtube.com/watch?v=', 'https://www.youtube.com/embed/') %}
             <iframe width="560" height="315" src="{{ embedded_url }}" title="YouTube video player" frameborder="0" allowfullscreen></iframe>
+        {% endif %}
+        {% if video.audio_exist %}
+        <div class="col-lg-10 col-md-12 col-sm-12 mx-auto bg-light p-3">
+            <audio preload="auto" onloadedmetadata="this.play()" id="myAudio" controls style="width: 100%;">
+                <source src="{{ video.audio_path }}" type="audio/mpeg">
+                Your browser does not support the audio tag.
+            </audio>
+        </div>
         {% endif %}
     </div>
 
@@ -95,6 +103,8 @@
                         <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='720') }}" >Push download (720P)</a></li>
                         <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='1080') }}" >Push download (1080P)</a></li>
                         <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='1440') }}" >Push download (1440P)</a></li>
+                    {% else %}
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.get_audio', video_uuid=video.uuid) }}" >Generate audio file</a></li>
                     {% endif %}
                     <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='9999') }}" >Push download (MAX)</a></li>
                 </ul>
@@ -112,9 +122,14 @@
             <span class="card-text" id="download-status" data-video-id="{{ video.id }}" data-status-type="to_download">
                 <i class="material-icons opacity-10" onclick="toggleStatus(this, 'to_download')" style="font-size:32px;{% if video.to_download %}color:green;">download_for_offline{% else %}">download{% endif %}</i>
             </span>
-            {% if video.file_exist %}
+            {% if video.video_exist %}
                 <span class="card-text">
                     <i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i>
+                </span>
+            {% endif %}
+            {% if video.audio_exist %}
+                <span class="card-text">
+                    <i class="material-icons opacity-10" style="font-size:32px;color:green;">music_note</i>
                 </span>
             {% endif %}
         </div>

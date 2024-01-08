@@ -54,9 +54,14 @@
                     <span class="card-text" id="download-status" data-video-id="{{ video.id }}" data-status-type="to_download">
                         <i class="material-icons opacity-10" onclick="toggleStatus(this, 'to_download')" style="font-size:32px;{% if video.to_download %}color:green;">download_for_offline{% else %}">download{% endif %}</i>
                     </span>
-                    {% if video.file_exist %}
+                    {% if video.video_exist %}
                         <span class="card-text">
                             <i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i>
+                        </span>
+                    {% endif %}
+                    {% if video.audio_exist %}
+                        <span class="card-text">
+                            <i class="material-icons opacity-10" style="font-size:32px;color:green;">music_note</i>
                         </span>
                     {% endif %}
                     <!-- Playlists Dropdown -->

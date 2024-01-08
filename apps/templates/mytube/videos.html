@@ -244,8 +244,11 @@
                     (video.to_download ? 'green' : '') + '">' +
                     (video.to_download ? 'download_for_offline' : 'download') +
                     '</i>';
-            var file_exist = video.file_exist ?
+            var video_exist = video.video_exist ?
                     '<span class="card-text"><i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i></span>' :
+                    '';
+            var audio_exist = video.audio_exist ?
+                    '<span class="card-text"><i class="material-icons opacity-10" style="font-size:32px;color:green;">music_note</i></span>' :
                     '';
             var tagsSelected = video.tags_selected;
             // Append the video HTML to the container
@@ -287,7 +290,8 @@
                             <span class="card-text" id="download-status" data-video-id="${video.id}" data-status-type="to_download">
                                 ${to_download}
                             </span>
-                            ${file_exist}
+                            ${video_exist}
+                            ${audio_exist}
 
                             <!-- Playlists Dropdown -->
                             <p>

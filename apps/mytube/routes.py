@@ -56,6 +56,12 @@ def prepare_videos(vids, title, source):
             if file_found != str2bool(sort_atributes['filter_downloaded']):
                 continue
 
+        # Check if audio file exists
+        audio_found = False
+        fname_audio = os.path.join(video_folder, f'{v.youtube_id}.mp3')
+        if os.path.isfile(fname_audio):
+            audio_found = True
+
         playlist = get_playlist(v.playlist_uuid)
         if v.playlist_uuid:
             pl_name = playlist.name
@@ -97,7 +103,8 @@ def prepare_videos(vids, title, source):
             'watched': v.watched,
             'deleted': v.deleted,
             'to_download': v.to_download,
-            'file_exist': file_found,
+            'video_exist': file_found,
+            'audio_exist': audio_found,
             'release_date': convert_int_date_to_iso(v.release_date),
             'created': v.created,
             'modified': v.modified,
@@ -332,6 +339,14 @@ def video(video_uuid):
         file_found = True
         video_path = url_for('static', filename=f'videos/{video.youtube_id}.webm')
 
+    # Check if audio file exists
+    audio_found = False
+    audio_path = ''
+    fname_audio = os.path.join(video_folder, f'{video.youtube_id}.mp3')
+    if os.path.isfile(fname_audio):
+        audio_found = True
+        audio_path = url_for('static', filename=f'videos/{video.youtube_id}.mp3')
+
     # Query existing TagVideo objects for the current user and video_uuid
     existing_tags = TagVideo.query.filter_by(
         user_uuid=current_user.uuid,
@@ -356,12 +371,14 @@ def video(video_uuid):
         'description': json.loads(video.description),
         'channel': video.channel,
         'channel_url': video.channel_url,
-        'path': video_path,
         'duration': convert_seconds_to_hms(video.duration),
         'watched': video.watched,
         'deleted': video.deleted,
         'to_download': video.to_download,
-        'file_exist': file_found,
+        'video_exist': file_found,
+        'video_path': video_path,
+        'audio_exist': audio_found,
+        'audio_path': audio_path,
         'release_date': convert_int_date_to_iso(video.release_date),
         'created': video.created,
         'modified': video.modified,
@@ -855,6 +872,24 @@ def download_movie(video_uuid, quality):
     return redirect(url_for('mytube_blueprint.video', video_uuid=video_uuid))  # Redirect after processing
 
 
+@blueprint.route('/get_audio/<video_uuid>', methods=['GET'])
+@login_required
+def get_audio(video_uuid):
+    # Call the API with playlist_id and add_to_database
+    api_link = current_app.config['API_LINK']
+    api_url = f'{api_link}/get_audio/{video_uuid}'
+    print(api_url)
+
+    # Example using the requests library
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        print(response)
+    else:
+        print(response)
+
+    return redirect(url_for('mytube_blueprint.video', video_uuid=video_uuid))  # Redirect after processing
+
+
 @blueprint.route('/clean_deleted', methods=['GET'])
 @login_required
 def clean_deleted():
@@ -870,7 +905,6 @@ def clean_deleted():
         print(response)
 
     return redirect(url_for('mytube_blueprint.mytube'))  # Redirect after processing
-
 
 @blueprint.route('/prepare_list')
 @login_required

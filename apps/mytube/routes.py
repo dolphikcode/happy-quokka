@@ -177,13 +177,12 @@ def mytube():
     row_count = db.session.query(func.count()).select_from(Video).scalar()
     videos = []
 
-    for i in range(1, 4):
+    for i in range(1, 10):
         random_number = random.randint(1, row_count - 1)
         video = Video.query.get(random_number)
 
-        if video:
+        if video.deleted is False and video.v is False:
             videos.append(video)
-
         else:
             i -= 1
 
@@ -198,6 +197,11 @@ def mytube():
 @blueprint.route('/videos/<playlist_uuid>')
 @login_required
 def videos(playlist_uuid):
+    # V
+    v = request.args.get('v', '')
+    if v != 'true':
+        v = 'false'
+
     # Config
     read_config = db.session.scalars(
         db.select(UserConfig).filter_by(user_uuid=current_user.uuid, name='mytube')).first()
@@ -246,6 +250,7 @@ def videos(playlist_uuid):
         pl_uuid = None
         title = 'All videos'
         source = 'all'
+        deleted = False
     elif playlist_uuid == 'trash':
         segment = 'mt_trash'
         pl_uuid = None
@@ -280,6 +285,7 @@ def videos(playlist_uuid):
         .filter_by(user_uuid=current_user.uuid)
         .filter_by(deleted=False)
         .filter_by(channel=channel_name)
+        .filter_by(v=str2bool(v))
         .order_by(
             getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
                   .all())
@@ -294,6 +300,7 @@ def videos(playlist_uuid):
         .filter_by(user_uuid=current_user.uuid)
         .filter_by(deleted=deleted)
         .filter_by(playlist_uuid=pl_uuid)
+        .filter_by(v=str2bool(v))
         .order_by(
             getattr(Video, column).asc() if order == 'asc' else getattr(Video, column).desc()))
         .all())
@@ -322,7 +329,6 @@ def video(video_uuid):
     video.last_visited = func.now()
     video.modified = func.now()
     db.session.commit()
-    chapters = db.session.scalars(db.select(Chapter).filter_by(movie_uuid=video_uuid)).all()
     tags = db.session.scalars(db.select(Tag).filter_by(user_uuid=current_user.uuid).order_by(getattr(Tag, 'group').asc())).all()
     playlist = get_playlist(video.playlist_uuid)
     video_folder = current_app.config['VIDEO_ROOT']
@@ -361,6 +367,15 @@ def video(video_uuid):
     for et in existing_tags_uuids:
         existing_tags_names.append(db.session.scalars(db.select(Tag).filter_by(uuid=et)).first().name)
 
+    chapters = []
+    for chapter in json.loads(video.chapters):
+        processed_chapter = {
+            's': int(chapter['s']),
+            'e': int(chapter['e']),
+            'n': chapter['n'],
+        }
+        chapters.append(processed_chapter)
+
     processed_video = {
         'id': video.id,
         'uuid': video.uuid,
@@ -388,11 +403,12 @@ def video(video_uuid):
         'playlist_name': playlist.name,
         'tags_selected': existing_tags_uuids,
         'tags_selected_names': existing_tags_names,
+        'chapters': chapters,
     }
 
     return render_template('mytube/video.html',
                            video=processed_video,
-                           chapters=chapters,
+                           # chapters=chapters,
                            tags=tags,
                            playlists=get_playlists(),
                            convert_seconds_to_hms=convert_seconds_to_hms,
@@ -890,6 +906,24 @@ def get_audio(video_uuid):
     return redirect(url_for('mytube_blueprint.video', video_uuid=video_uuid))  # Redirect after processing
 
 
+@blueprint.route('/download_thumbnail/<video_uuid>', methods=['GET'])
+@login_required
+def download_thumbnail(video_uuid):
+    # Call the API with playlist_id and add_to_database
+    api_link = current_app.config['API_LINK']
+    api_url = f'{api_link}/get_thumbnail/{video_uuid}'
+    print(api_url)
+
+    # Example using the requests library
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        print(response)
+    else:
+        print(response)
+
+    return redirect(url_for('mytube_blueprint.video', video_uuid=video_uuid))  # Redirect after processing
+
+
 @blueprint.route('/clean_deleted', methods=['GET'])
 @login_required
 def clean_deleted():
@@ -988,11 +1022,15 @@ def tag_video():
         return jsonify({'error': 'An error occurred'}), 500
 
 
+@blueprint.route('/make_v/<video_uuid>', methods=['GET'])
+@login_required
+def make_v(video_uuid):
+    v = Video.query.filter_by(uuid=video_uuid).first()
+    v.v = True
+    v.modified = func.now()
 
-
-
-
-
+    db.session.commit()
+    return redirect(url_for('mytube_blueprint.video', video_uuid=video_uuid))  # Redirect after processing
 
 
 @blueprint.route('/get_selected_tags', methods=['POST'])

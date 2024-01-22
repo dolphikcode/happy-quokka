@@ -4,7 +4,7 @@
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 300px;
+    width: 500px;
     max-height: 90vh;
     /* overflow-y: auto; Add scrollbars if the content overflows */
     padding: 20px;

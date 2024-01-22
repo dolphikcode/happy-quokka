@@ -47,7 +47,7 @@
     <div class="card-body text-dark">
         <div class="btn-toolbar" role="toolbar" aria-label="Toolbar">
 
-        {% if video.file_exist %}
+        {% if video.video_exist %}
             <div class="btn-group me-1" role="group">
                 <button class="btn btn-info" id="speedUpBtn" style="padding-left: 0.4rem; padding-right: 0.4rem;">Speed Up</button>
                 <button class="btn btn-warning" id="speedDownBtn" style="padding-left: 0.4rem; padding-right: 0.4rem;">Speed Down</button>
@@ -55,19 +55,11 @@
         {% endif %}
 
         <!-- Chapters Collapse Button -->
-        {% if chapters %}
+        {% if video.chapters %}
             <button class="btn btn-primary me-1" type="button" data-bs-toggle="collapse" data-bs-target="#chaptersCollapse" aria-expanded="false" aria-controls="chaptersCollapse" style="padding-left: 0.4rem; padding-right: 0.4rem;">
                 Chapters
             </button>
         {% endif %}
-        <div class="collapse" id="chaptersCollapse">
-            <div class="card card-body">
-                <!-- Display Chapters Here -->
-                {% for chapter in chapters %}
-                    <p><a href="#" onclick="rewindToTime({{ chapter.start }})">{{ convert_seconds_to_hms(chapter.start) }}</a> - {{ chapter.name }}</p>
-                {% endfor %}
-            </div>
-        </div>
 
         <!-- Playlists Dropdown -->
         <div class="dropdown">
@@ -99,14 +91,18 @@
                     &vellip;
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="more-items">
-                    {% if not video.file_exist %}
-                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='720') }}" >Push download (720P)</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='1080') }}" >Push download (1080P)</a></li>
-                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='1440') }}" >Push download (1440P)</a></li>
+                    {% if not video.video_exist %}
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='720') }}">Push download (720P)</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='1080') }}">Push download (1080P)</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='1440') }}">Push download (1440P)</a></li>
                     {% else %}
-                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.get_audio', video_uuid=video.uuid) }}" >Generate audio file</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.get_audio', video_uuid=video.uuid) }}">Generate audio file</a></li>
                     {% endif %}
-                    <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='9999') }}" >Push download (MAX)</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_movie', video_uuid=video.uuid, quality='9999') }}">Push download (MAX)</a></li>
+                    <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.download_thumbnail', video_uuid=video.uuid) }}">Push download thumbnail</a></li>
+
+                        <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.make_v', video_uuid=video.uuid) }}">Make V</a></li>
+
                 </ul>
             </div>
         </div>
@@ -192,6 +188,16 @@
                 <i id="i_star_5" class="material-icons opacity-10" onclick="toggleStars(this, '5')" style="font-size:32px;{% if video.rate and video.rate == 5 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
             </span>
         </p>
+
+        <!-- Chapters content -->
+        <div class="collapse" id="chaptersCollapse">
+            <div class="card card-body">
+                <!-- Display Chapters Here -->
+                {% for chapter in video.chapters %}
+                    <p><a href="#" onclick="rewindToTime({{ chapter['s'] }})">{{ convert_seconds_to_hms(chapter['s']) }}</a> - {{ chapter['n'] }}</p>
+                {% endfor %}
+            </div>
+        </div>
 
         <!-- Video Description -->
         <h4 class="card-text text-dark">Description:</h4>

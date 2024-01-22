@@ -13,6 +13,7 @@ class YTLogs(db.Model):
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
 
+
 class Playlist(db.Model):
     __tablename__ = 'YT_Playlist'
 
@@ -20,18 +21,6 @@ class Playlist(db.Model):
     user_uuid = db.Column(db.String(36), nullable=False)
     name = db.Column(db.String(48), nullable=False)
     last_used = db.Column(db.DateTime, default=func.now())
-    modified = db.Column(db.DateTime, default=func.now())
-    uuid = db.Column(db.String(36), nullable=False)
-
-
-class Chapter(db.Model):
-    __tablename__ = 'YT_Chapter'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    movie_uuid = db.Column(db.String(36), nullable=False)
-    name = db.Column(db.String(1024), nullable=False)
-    start = db.Column(db.Integer, default=0)
-    end = db.Column(db.Integer, default=0)
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
 
@@ -70,6 +59,7 @@ class TagVideo(db.Model):
     uuid = db.Column(db.String(36), nullable=False)
     status = db.Column(db.Boolean, default=False)
 
+
 class Video(db.Model):
     __tablename__ = 'YT_Video'
 
@@ -79,7 +69,7 @@ class Video(db.Model):
     user_uuid = db.Column(db.String(36), nullable=False)
     title = db.Column(db.String(512), nullable=False)
     url = db.Column(db.String(256), nullable=False)
-    description = db.Column(db.String(15000), nullable=True)
+    description = db.Column(db.Text, nullable=True)
     channel = db.Column(db.String(100), nullable=True)
     channel_url = db.Column(db.String(256), nullable=True)
     # thumbnail = db.Column(db.LargeBinary(length=(2 ** 32) - 1), nullable=True)
@@ -91,9 +81,11 @@ class Video(db.Model):
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     last_visited = db.Column(db.DateTime)
-    comment = db.Column(db.String(1024))
+    comment = db.Column(db.Text)
     rate = db.Column(db.Integer)
+    chapters = db.Column(db.Text, nullable=True)
     playlist_uuid = db.Column(db.String(36))
+    v = db.Column(db.Boolean, default=False, nullable=False)
     uuid = db.Column(db.String(36), nullable=False)
 
 
@@ -109,11 +101,3 @@ class ApiExchange(db.Model):
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
 
-
-class NewModified(db.Model):
-    __tablename__ = 'YT_new_modified'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_uuid = db.Column(db.String(36), nullable=False)
-    obiekt = db.Column(db.String(20), nullable=False)
-    obiekt_uuid = db.Column(db.String(36), nullable=False)

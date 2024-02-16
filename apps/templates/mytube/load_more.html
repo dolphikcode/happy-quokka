@@ -1,0 +1,92 @@
+{% for video in videos %}
+    <div class="col">
+        <div class="card h-100 bg-gradient-dark">
+            <div class="position-relative">
+                <!-- Video thumbnail -->
+                <a href="{{ url_for('mytube_blueprint.video', video_uuid=video.uuid) }}" target="_blank">
+<!--                        <img src="{{ url_for('mytube_blueprint.display_thumbnail', video_id=video.id) }}" class="card-img-top" alt="Thumbnail">-->
+                    <img src="{{ video.thumbnail }}" class="card-img-top" alt="Thumbnail">
+                </a>
+                <!-- Video duration -->
+                <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;{{ video.duration }}&nbsp;</strong></p>
+                <p class="card-text duration-badge position-absolute bottom-0 start-0 m-2 bg-gradient-dark text-white rounded">
+                    <span class="card-text" id="star_1" data-video-id="{{ video.id }}" data-stars-amount="1">
+                        <i id="i_star_1" class="material-icons opacity-10" onclick="toggleStars(this, '1')" style="font-size:12px;{% if video.rate and video.rate >= 1 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+                    </span>
+                    <span class="card-text" id="star_2" data-video-id="{{ video.id }}" data-stars-amount="2">
+                        <i id="i_star_2" class="material-icons opacity-10" onclick="toggleStars(this, '2')" style="font-size:12px;{% if video.rate and video.rate >= 2 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+                    </span>
+                    <span class="card-text" id="star_3" data-video-id="{{ video.id }}" data-stars-amount="3">
+                        <i id="i_star_3" class="material-icons opacity-10" onclick="toggleStars(this, '3')" style="font-size:12px;{% if video.rate and video.rate >= 3 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+                    </span>
+                    <span class="card-text" id="star_4" data-video-id="{{ video.id }}" data-stars-amount="4">
+                        <i id="i_star_4" class="material-icons opacity-10" onclick="toggleStars(this, '4')" style="font-size:12px;{% if video.rate and video.rate >= 4 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+                    </span>
+                    <span class="card-text" id="star_5" data-video-id="{{ video.id }}" data-stars-amount="5">
+                        <i id="i_star_5" class="material-icons opacity-10" onclick="toggleStars(this, '5')" style="font-size:12px;{% if video.rate and video.rate == 5 %}color:#ffdc14;">star{% else %}">star{% endif %}</i>
+                    </span>
+                </p>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('mytube_blueprint.video', video_uuid=video.uuid) }}" target="_blank">
+                    <h6 class="card-title text-white">{{ video.title }}</h6>
+                </a>
+
+                <p class="card-text">
+                    <a href="{{ url_for('mytube_blueprint.videos', playlist_uuid='channel', ch=video.channel) }}">
+                        {{ video.channel }}
+                    </a>
+                    <span class="card-text">
+                        <a href="{{ video.channel_url }}" target="_blank">
+                            <i class="material-icons opacity-10  text-white" style="">open_in_new</i>
+                        </a>
+                    </span>
+                    <br>Release date: {{ video.release_date }}
+                </p>
+
+                <!-- Watched, Deleted and To Download status with icon -->
+                <span class="card-text" id="watched-status" data-video-id="{{ video.id }}" data-status-type="watched">
+                    <i class="material-icons opacity-10" onclick="toggleStatus(this, 'watched')" style="font-size:32px;{% if video.watched %}color:green;">visibility{% else %}">visibility_off{% endif %}</i>
+                </span>
+                <span class="card-text" id="deleted-status" data-video-id="{{ video.id }}" data-status-type="deleted">
+                    <i class="material-icons opacity-10" onclick="toggleStatus(this, 'deleted')" style="font-size:32px;{% if video.deleted %}color:red;">delete{% else %}">delete_forever{% endif %}</i>
+                </span>
+                <span class="card-text" id="download-status" data-video-id="{{ video.id }}" data-status-type="to_download">
+                    <i class="material-icons opacity-10" onclick="toggleStatus(this, 'to_download')" style="font-size:32px;{% if video.to_download %}color:green;">download_for_offline{% else %}">download{% endif %}</i>
+                </span>
+                {% if video.video_exist %}
+                    <span class="card-text">
+                        <i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i>
+                    </span>
+                {% endif %}
+                {% if video.audio_exist %}
+                    <span class="card-text">
+                        <i class="material-icons opacity-10" style="font-size:32px;color:green;">music_note</i>
+                    </span>
+                {% endif %}
+                <p>
+                <!-- Button to open the Tags Modal -->
+                <button class="btn btn-info" onclick="openTagsModal('{{ video.uuid }}')">
+                    Tags
+                    {% if video.tags_count > 0 %}
+                    <span class="badge rounded-pill bg-danger">
+                        {{ video.tags_count }}
+                        <span class="visually-hidden">tags</span>
+                    </span>
+                    {% endif %}
+                </button>
+                <!-- Button to open the Playlists Modal -->
+                <button class="btn btn-info position-relative" onclick="openPlaylistsModal('{{ video.uuid }}')" data-toggle="tooltip" data-placement="top" title="Tooltip Text">
+                    Playlists
+                    {% if video.playlists_count > 0 %}
+                    <span class="badge rounded-pill bg-danger">
+                        {{ video.playlists_count }}
+                        <span class="visually-hidden">playlists</span>
+                    </span>
+                    {% endif %}
+                </button>
+                </p>
+            </div>
+        </div>
+    </div>
+{% endfor %}

@@ -25,6 +25,18 @@ class Playlist(db.Model):
     uuid = db.Column(db.String(36), nullable=False)
 
 
+class PlaylistVideo(db.Model):
+    __tablename__ = 'YT_PlaylistVideo'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_uuid = db.Column(db.String(36), nullable=False)
+    playlist_uuid = db.Column(db.String(36), nullable=False)
+    video_uuid = db.Column(db.String(36), nullable=False)
+    modified = db.Column(db.DateTime, default=func.now())
+    uuid = db.Column(db.String(36), nullable=False)
+    status = db.Column(db.Boolean, default=False)
+
+
 class CreatorPlaylist(db.Model):
     __tablename__ = 'YT_CreatorPlaylist'
 
@@ -84,7 +96,6 @@ class Video(db.Model):
     comment = db.Column(db.Text)
     rate = db.Column(db.Integer)
     chapters = db.Column(db.Text, nullable=True)
-    playlist_uuid = db.Column(db.String(36))
     v = db.Column(db.Boolean, default=False, nullable=False)
     uuid = db.Column(db.String(36), nullable=False)
 
@@ -100,4 +111,12 @@ class ApiExchange(db.Model):
     created = db.Column(db.DateTime, default=func.now())
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
+
+
+class LoadMore(db.Model):
+    __tablename__ = 'YT_LoadMore'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_uuid = db.Column(db.String(36), nullable=False)
+    data = db.Column(db.Text, nullable=True)
 

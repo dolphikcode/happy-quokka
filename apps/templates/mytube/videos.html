@@ -15,58 +15,58 @@
       <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
         <div class="btn-group btn-group-sm me-2" role="group" aria-label="First group">
             <!--      FILTER WATCHED      -->
-            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='watched', atrib=data.config.fWatched) }}" role="button">
-                {% if data.config.fWatched == 'all' %}
+            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='watched', atrib=header.fWatched) }}" role="button">
+                {% if header.fWatched == 'all' %}
                     <i class="material-icons" style="font-size:22px;color:blue;">disabled_visible</i>
-                {% elif data.config.fWatched == 'true' %}
+                {% elif header.fWatched == 'true' %}
                     <i class="material-icons" style="font-size:22px;color:green;">visibility</i>
-                {% elif data.config.fWatched == 'false' %}
+                {% elif header.fWatched == 'false' %}
                     <i class="material-icons" style="font-size:22px;color:red;">visibility_off</i>
                 {% endif %}
             </a>
 
             <!--      FILTER TO DOWNLOAD      -->
-            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='to_download', atrib=data.config.fToDownload) }}" role="button">
-                {% if data.config.fToDownload == 'all' %}
+            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='to_download', atrib=header.fToDownload) }}" role="button">
+                {% if header.fToDownload == 'all' %}
                     <i class="material-icons" style="font-size:22px;color:blue;">downloading</i>
-                {% elif data.config.fToDownload == 'true' %}
+                {% elif header.fToDownload == 'true' %}
                     <i class="material-icons" style="font-size:22px;color:green;">download_for_offline</i>
-                {% elif data.config.fToDownload == 'false' %}
+                {% elif header.fToDownload == 'false' %}
                     <i class="material-icons" style="font-size:22px;color:red;">download</i>
                 {% endif %}
             </a>
 
             <!--      FILTER DOWNLOADED      -->
-            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='downloaded', atrib=data.config.fDownloaded) }}" role="button">
-                {% if data.config.fDownloaded == 'all' %}
+            <a class="btn btn-outline-primary" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='downloaded', atrib=header.fDownloaded) }}" role="button">
+                {% if header.fDownloaded == 'all' %}
                     <i class="material-icons" style="font-size:22px;color:blue;">file_download_done</i>
-                {% elif data.config.fDownloaded == 'true' %}
+                {% elif header.fDownloaded == 'true' %}
                     <i class="material-icons" style="font-size:22px;color:green;">file_download_done</i>
-                {% elif data.config.fDownloaded == 'false' %}
+                {% elif header.fDownloaded == 'false' %}
                     <i class="material-icons" style="font-size:22px;color:red;">file_download_done</i>
                 {% endif %}
             </a>
 
             <button class="btn btn-warning dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                {{ data.config.sorted }}
+                {{ header.sorted }}
             </button>
             <ul class="dropdown-menu" aria-labelledby="sortDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='released-desc') }}" >Date of release (descending)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='released-asc') }}" >Date of release (acsending)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='created-desc') }}" >Date of adding to myTube (descending)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='created-asc') }}" >Date of adding to myTube (acsending)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='visited-desc') }}" >Last visit (descending)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='visited-asc') }}" >Last visit (acsending)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='duration-desc') }}" >Duration (descending)</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='sorted', atrib='duration-asc') }}" >Duration (acsending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='sorted', atrib='released-desc') }}" >Date of release (descending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='sorted', atrib='released-asc') }}" >Date of release (acsending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='sorted', atrib='created-desc') }}" >Date of adding to myTube (descending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='sorted', atrib='created-asc') }}" >Date of adding to myTube (acsending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='sorted', atrib='visited-desc') }}" >Last visit (descending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='sorted', atrib='visited-asc') }}" >Last visit (acsending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='sorted', atrib='duration-desc') }}" >Duration (descending)</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='sorted', atrib='duration-asc') }}" >Duration (acsending)</a></li>
             </ul>
             <button class="btn btn-info dropdown-toggle" type="button" id="limitDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                {{ data.config.limit }}
+                {{ header.limit }}
             </button>
             <ul class="dropdown-menu" aria-labelledby="limitDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='100') }}" >100</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='200') }}" >200</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=data.config.source, obiekt='limit', atrib='500') }}" >500</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='limit', atrib='100') }}" >100</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='limit', atrib='200') }}" >200</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('mytube_blueprint.sort_filter', source=header.source, obiekt='limit', atrib='500') }}" >500</a></li>
             </ul>
 
         </div>
@@ -75,19 +75,21 @@
     </div>
 
     <!-- Your videos container -->
-    <h1 class="text-center">{{ data.config.title }} ({{ data.config.count }})</h1>
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="videos-container">
-        <!-- Initial rendering of the first 100 videos will be here -->
+    <h1 class="text-center">{{ header.title }} ({{ videos_count }})</h1>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4" id="videos-container">
+        {% include 'mytube/load_more.html' %}
     </div>
-    {% if data.config.count | int > data.config.limit | int %}
+
+    {% if videos_count | int > header.limit | int %}
         <!-- Your existing "Load More" button -->
-        <button class="btn btn-secondary" id="load-more-btn">Load More</button>
+        <button class="btn btn-secondary" id="load-more-button">Load More</button>
     {% endif %}
 </div>
 
 <!-- Tags Modal -->
-<div id="tagModal" class="modal card">
-    <span class="close" onclick="closeModal()">&times;</span>
+<div id="tagsModal" class="modal card">
+    <span class="close" onclick="closeTagsModal()">&times;</span>
     <div class="card-header">
         <h3 class="card-title">Select Tags</h3>
     </div>
@@ -110,8 +112,34 @@
     </div>
 </div>
 
-<!-- The Overlay -->
-<div id="overlay" class="overlay" onclick="closeModal()"></div>
+<!-- The Tags Overlay -->
+<div id="tags-overlay" class="overlay" onclick="closeTagsModal()"></div>
+
+
+<!-- Playlists Modal -->
+<div id="playlistsModal" class="modal card">
+    <span class="close" onclick="closePlaylistsModal()">&times;</span>
+    <div class="card-header">
+        <h3 class="card-title">Select Playlist</h3>
+    </div>
+    <div class="card-body modal-content">
+        {% for playlist in playlists %}
+            <div class="group">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="selectedPlaylists" value="{{ playlist.uuid }}">
+                    <label class="form-check-label">{{ playlist.name }}</label>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="card-footer">
+        <button id="addPlaylistsButton" class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Playlists</button>
+    </div>
+</div>
+
+<!-- The Playlists Overlay -->
+<div id="playlists-overlay" class="overlay" onclick="closePlaylistModal()"></div>
+
 
 </body>
 
@@ -206,145 +234,13 @@
 </script>
 
 
-
-
-
-
-
-
-
-
 <!-- Add this script at the end of your HTML file, after including jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
-
-<script>
-    // Get a reference to the "Load More" button
-    var loadMoreBtn = document.getElementById('load-more-btn');
-
-    // Assuming you have all video data available in the 'allVideos' variable
-    var allVideos = {{ data.videos | tojson | safe }};
-    var limit_videos = Number({{ data.config.limit }});
-    var max_videos = Number({{ data.config.count }});
-
-    // Function to render videos
-    function renderVideos(startIndex, endIndex) {
-        var videosContainer = $('#videos-container');
-
-        for (var i = startIndex; i < endIndex; i++) {
-            var video = allVideos[i];
-            var watched = '<i class="material-icons opacity-10" onclick="toggleStatus(this, \'watched\')" style="font-size:32px; color:' +
-                    (video.watched ? 'green' : '') + '">' +
-                    'visibility' + (video.watched ? '' : '_off') +
-                    '</i>';
-            var deleted = '<i class="material-icons opacity-10" onclick="toggleStatus(this, \'deleted\')" style="font-size:32px; color:' +
-                    (video.deleted ? 'red' : '') + '">' +
-                    (video.deleted ? 'delete' : 'delete_forever') +
-                    '</i>';
-            var to_download = '<i class="material-icons opacity-10" onclick="toggleStatus(this, \'to_download\')" style="font-size:32px; color:' +
-                    (video.to_download ? 'green' : '') + '">' +
-                    (video.to_download ? 'download_for_offline' : 'download') +
-                    '</i>';
-            var video_exist = video.video_exist ?
-                    '<span class="card-text"><i class="material-icons opacity-10" style="font-size:32px;color:green;">file_download_done</i></span>' :
-                    '';
-            var audio_exist = video.audio_exist ?
-                    '<span class="card-text"><i class="material-icons opacity-10" style="font-size:32px;color:green;">music_note</i></span>' :
-                    '';
-            var tagsSelected = video.tags_selected;
-            // Append the video HTML to the container
-            videosContainer.append(`
-               <div class="col">
-                    <div class="card h-100 bg-gradient-dark">
-                        <div class="position-relative">
-                            <!-- Video thumbnail -->
-                            <a href="${url_for_video}${video.uuid}" target="_blank">
-                                <img src="${video.thumbnail}" class="card-img-top" alt="Thumbnail">
-                            </a>
-                            <!-- Video duration -->
-                            <p class="card-text duration-badge position-absolute bottom-0 end-0 m-2 bg-gradient-dark text-white rounded"><strong>&nbsp;${video.duration}&nbsp;</strong></p>
-                        </div>
-                        <div class="card-body">
-                            <a href="${url_for_video}${video.uuid}" target="_blank">
-                                <h6 class="card-title text-white">${video.title}</h6>
-                            </a>
-
-                            <p class="card-text">
-                                <a href="${url_for_videos}channel?ch=${video.channel}">
-                                    ${video.channel}
-                                </a>
-                                <span class="card-text">
-                                    <a href="${video.url}" target="_blank">
-                                        <i class="material-icons opacity-10  text-white" style="">open_in_new</i>
-                                    </a>
-                                </span>
-                                <br>Release date: ${video.release_date}
-                            </p>
-
-                            <!-- Watched, Deleted and To Download status with icon -->
-                            <span class="card-text" id="watched-status" data-video-id="${video.id}" data-status-type="watched">
-                                ${watched}
-                            </span>
-                            <span class="card-text" id="deleted-status" data-video-id="${video.id}" data-status-type="deleted">
-                                ${deleted}
-                            </span>
-                            <span class="card-text" id="download-status" data-video-id="${video.id}" data-status-type="to_download">
-                                ${to_download}
-                            </span>
-                            ${video_exist}
-                            ${audio_exist}
-
-                            <!-- Playlists Dropdown -->
-                            <p>
-                                <div class="dropdown float-end">
-                                    ${video.playlistDropdownHtml}
-                                </div>
-                            </p>
-                            <!-- Button to open the Tags Modal -->
-                            <button class="btn btn-info" onclick="openModal(\'${video.uuid}\')">Choose Tags</button>
-                        </div>
-                    </div>
-                </div>
-            `);
-        }
-    }
-
-    // Initial rendering of the first 100 videos
-    $(document).ready(function () {
-        if (max_videos >= limit_videos) {
-            renderVideos(0, limit_videos);
-        } else {
-            renderVideos(0, max_videos);
-        }
-    });
-
-    // Function to load more videos
-    function loadMoreVideos() {
-        var currentEndIndex = $('#videos-container').children().length;
-        var nextEndIndex = currentEndIndex + limit_videos;
-
-        // Render the next set of videos
-        if (max_videos >= nextEndIndex) {
-            renderVideos(currentEndIndex, nextEndIndex);
-            loadMoreBtn.style.display = 'block';
-        } else {
-            renderVideos(currentEndIndex, max_videos);
-            loadMoreBtn.style.display = 'none'; // Hide the button
-        }
-    }
-
-    // Attach the loadMoreVideos function to the "Load More" button click event
-    $('#load-more-btn').click(function () {
-        loadMoreVideos();
-    });
-</script>
-
-
-
 
 
 <!-- Tags Modal -->
 <script>
-async function openModal(videoUUID) {
+async function openTagsModal(videoUUID) {
     try {
         const response = await fetch(`{{ url_for('mytube_blueprint.get_selected_tags') }}`, {
             method: 'POST',
@@ -360,8 +256,8 @@ async function openModal(videoUUID) {
 
         const data = await response.json();
         tagsSelectedStr = data.tags
-        document.getElementById('tagModal').style.display = 'block';
-        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('tagsModal').style.display = 'block';
+        document.getElementById('tags-overlay').style.display = 'block';
 
         // Update the onclick attribute
         var addTagsButton = document.getElementById('addTagsButton');
@@ -386,9 +282,9 @@ async function openModal(videoUUID) {
 
 
 
-    function closeModal() {
-        document.getElementById('tagModal').style.display = 'none';
-        document.getElementById('overlay').style.display = 'none';
+    function closeTagsModal() {
+        document.getElementById('tagsModal').style.display = 'none';
+        document.getElementById('tags-overlay').style.display = 'none';
     }
 
     async function addTags(event, videoUUID) {
@@ -427,8 +323,138 @@ async function openModal(videoUUID) {
         }
 
         // Close the modal
-        closeModal();
+        closeTagsModal();
     }
 </script>
+
+
+<!-- Playlists Modal -->
+<script>
+async function openPlaylistsModal(videoUUID) {
+    try {
+        const response = await fetch(`{{ url_for('mytube_blueprint.get_selected_playlists') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ video_uuid: videoUUID }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        playlistsSelectedStr = data.playlists
+        document.getElementById('playlistsModal').style.display = 'block';
+        document.getElementById('playlists-overlay').style.display = 'block';
+
+        // Update the onclick attribute
+        var addPlaylistsButton = document.getElementById('addPlaylistsButton');
+        addPlaylistsButton.onclick = function(event) {
+            addPlaylists(event, videoUUID);
+        };
+
+        // Check checkboxes based on tags_selected
+        var checkboxes = document.getElementsByName('selectedPlaylists');
+        checkboxes.forEach(function (checkbox) {
+            // clear checkbox
+            checkbox.checked = false;
+            // select if has playlist
+            if (playlistsSelectedStr.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+
+    function closePlaylistsModal() {
+        document.getElementById('playlistsModal').style.display = 'none';
+        document.getElementById('playlists-overlay').style.display = 'none';
+    }
+
+    async function addPlaylists(event, videoUUID) {
+        event.stopPropagation(); // Prevents the click event from reaching the overlay
+
+        var selectedPlaylists = [];
+        var checkboxes = document.getElementsByName('selectedPlaylists');
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                selectedPlaylists.push(checkbox.value);
+            }
+        });
+
+        // Handle the selected tags (you can send them to the server using fetch)
+        console.log('Selected Playlists:', selectedPlaylists);
+
+        // Send data to Flask route using fetch
+        try {
+            const response = await fetch(`{{ url_for('mytube_blueprint.playlist_video') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ playlists: selectedPlaylists,
+                                       video_uuid: videoUUID }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Close the modal
+        closePlaylistsModal();
+    }
+</script>
+
+
+<!--  Load More Videos-->
+<script>
+    document.getElementById('load-more-button').addEventListener('click', function() {
+        // Get a reference to the "Load More" button
+        var loadMoreBtn = document.getElementById('load-more-button');
+        // Check videos limit
+        var max_videos = Number({{ videos_count }});
+        var limit_videos = Number({{ header.limit }});
+        var currentEndIndex = $('#videos-container').children().length;
+        var nextEndIndex = currentEndIndex + limit_videos;
+
+        // Make an AJAX request to fetch more content
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '{{ url_for('mytube_blueprint.load_more', limit=header.limit, source=header.source) }}', true);
+
+        xhr.onload = function() {
+            if (xhr.status == 200) {
+                // Append the received content to the existing content container
+                document.getElementById('videos-container').innerHTML += xhr.responseText;
+                // Remove button if no more videos
+                if (max_videos >= nextEndIndex) {
+                    loadMoreBtn.style.display = 'block';
+                } else {
+                    loadMoreBtn.style.display = 'none'; // Hide the button
+                }
+            }
+        };
+
+        xhr.send();
+    });
+</script>
+
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
 
 {% endblock javascripts %}

@@ -8,7 +8,6 @@
 {% endblock stylesheets %}
 
 {% block content %}
-<body>
 <div class="container mt-5">
     <!-- NEW Filter and Sort  -->
     <div class="container">
@@ -133,16 +132,12 @@
         {% endfor %}
     </div>
     <div class="card-footer">
-        <button id="addPlaylistsButton" class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Playlists</button>
+        <button id="addPlaylistsButton" class="btn btn-primary add-tags-button" onclick="addPlaylists(event)">Add Playlists</button>
     </div>
 </div>
 
 <!-- The Playlists Overlay -->
 <div id="playlists-overlay" class="overlay" onclick="closePlaylistModal()"></div>
-
-
-</body>
-
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->

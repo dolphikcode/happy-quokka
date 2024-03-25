@@ -14,6 +14,7 @@
       <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
           <div class="btn-group me-2" role="group" aria-label="First group">
           <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.download_creator_playlist') }}" role="button">Get info</a>
+          <a class="btn btn-info" onclick="openAddVideosModal()" role="button">Add videos</a>
           <a class="btn btn-primary" href="{{ url_for('mytube_blueprint.prepare_list') }}" role="button">Prepare list for mobile</a>
           <a class="btn btn-secondary" href="{{ url_for('mytube_blueprint.clean_deleted') }}" role="button">Clean deleted</a>
         </div>
@@ -36,7 +37,7 @@
           <div class="card-header pb-0 bg-transparent">
             <div class="row">
               <div class="col-lg-6 col-">
-                <h6 class="text-white" >Playlists</h6>
+                <h6 class="text-white">Playlists</h6>
               </div>
               <div class="col-lg-6 col-5 my-auto text-end">
                 <a class="btn btn-sm btn-primary" href="{{ url_for('mytube_blueprint.create_playlist') }}" role="button">New Playlist</a>
@@ -48,8 +49,8 @@
               <table class="table align-items-center">
                 <thead>
                   <tr>
-                    <th class="text-uppercase text-secondary text-xxs  text-white font-weight-bolder opacity-7">Playlist</th>
-                    <th class="text-uppercase text-secondary text-xxs  text-white font-weight-bolder opacity-7 ps-2">Actions</th>
+                    <th class="text-uppercase text-secondary text-xxs text-white font-weight-bolder opacity-7">Playlist</th>
+                    <th class="text-uppercase text-secondary text-xxs text-white font-weight-bolder opacity-7 ps-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -140,7 +141,78 @@
 
 </div>
 
+<!-- Tags Modal -->
+<div id="tagsModal" class="modal card">
+    <span class="close" onclick="closeTagsModal()">&times;</span>
+    <div class="card-header">
+        <h3 class="card-title">Select Tags</h3>
+    </div>
+    <div class="card-body modal-content">
+        {% set grouped_tags = tags | rejectattr('group', 'equalto', None) | groupby('group') %}
+        {% for group, group_tags in grouped_tags %}
+            <div class="group">
+                <p>{{ group }}</p>
+                {% for tag in group_tags %}
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" name="selectedTags" value="{{ tag.uuid }}">
+                        <label class="form-check-label">{{ tag.name }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+    <div class="card-footer">
+        <button id="addTagsButton" class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Tags</button>
+    </div>
+</div>
 
+<!-- The Tags Overlay -->
+<div id="tags-overlay" class="overlay" onclick="closeTagsModal()"></div>
+
+
+<!-- Playlists Modal -->
+<div id="playlistsModal" class="modal card">
+    <span class="close" onclick="closePlaylistsModal()">&times;</span>
+    <div class="card-header">
+        <h3 class="card-title">Select Playlist</h3>
+    </div>
+    <div class="card-body modal-content">
+        {% for playlist in playlists %}
+            <div class="group">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="selectedPlaylists" value="{{ playlist.uuid }}">
+                    <label class="form-check-label">{{ playlist.name }}</label>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="card-footer">
+        <button id="addPlaylistsButton" class="btn btn-primary add-tags-button" onclick="addPlaylists(event)">Add Playlists</button>
+    </div>
+</div>
+
+<!-- The Playlists Overlay -->
+<div id="playlists-overlay" class="overlay" onclick="closeAddVideosModal()"></div>
+
+
+<!-- Add videos Modal -->
+<div id="addVideosModal" class="modal card">
+    <span class="close" onclick="closeAddVideosModal()">&times;</span>
+    <div class="card-header">
+        <h3 class="card-title">Select Playlist</h3>
+    </div>
+    <div class="card-body modal-content">
+        <textarea id="VideosListBox" name="VideosListBox" rows="10" cols="50">
+          Enter your message here...
+        </textarea>
+    </div>
+    <div class="card-footer">
+        <button id="addVideosButton" class="btn btn-primary add-tags-button" onclick="addVideos(event)">Add Videos</button>
+    </div>
+</div>
+
+<!-- Add videos Overlay -->
+<div id="addVideos-overlay" class="overlay" onclick="closeAddVideosModal()"></div>
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
@@ -148,6 +220,10 @@
 
 <!-- Bootstrap JS and Popper.js (if needed) -->
 <script src="{{ url_for('static', filename='assets/js/plugins/chartjs.min.js') }}"></script>
+
+
+<!-- Add this script at the end of your HTML file, after including jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 
 <script>
     const baseUrl = "{{ url_for('static', filename='') }}";
@@ -230,9 +306,10 @@
     }
 </script>
 
+
 <!-- Tags Modal -->
 <script>
-async function openModal(videoUUID) {
+async function openTagsModal(videoUUID) {
     try {
         const response = await fetch(`{{ url_for('mytube_blueprint.get_selected_tags') }}`, {
             method: 'POST',
@@ -248,8 +325,8 @@ async function openModal(videoUUID) {
 
         const data = await response.json();
         tagsSelectedStr = data.tags
-        document.getElementById('tagModal').style.display = 'block';
-        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('tagsModal').style.display = 'block';
+        document.getElementById('tags-overlay').style.display = 'block';
 
         // Update the onclick attribute
         var addTagsButton = document.getElementById('addTagsButton');
@@ -273,9 +350,10 @@ async function openModal(videoUUID) {
 }
 
 
-    function closeModal() {
-        document.getElementById('tagModal').style.display = 'none';
-        document.getElementById('overlay').style.display = 'none';
+
+    function closeTagsModal() {
+        document.getElementById('tagsModal').style.display = 'none';
+        document.getElementById('tags-overlay').style.display = 'none';
     }
 
     async function addTags(event, videoUUID) {
@@ -314,8 +392,177 @@ async function openModal(videoUUID) {
         }
 
         // Close the modal
-        closeModal();
+        closeTagsModal();
     }
+</script>
+
+
+<!-- Playlists Modal -->
+<script>
+async function openPlaylistsModal(videoUUID) {
+    try {
+        const response = await fetch(`{{ url_for('mytube_blueprint.get_selected_playlists') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ video_uuid: videoUUID }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        playlistsSelectedStr = data.playlists
+        document.getElementById('playlistsModal').style.display = 'block';
+        document.getElementById('playlists-overlay').style.display = 'block';
+
+        // Update the onclick attribute
+        var addPlaylistsButton = document.getElementById('addPlaylistsButton');
+        addPlaylistsButton.onclick = function(event) {
+            addPlaylists(event, videoUUID);
+        };
+
+        // Check checkboxes based on tags_selected
+        var checkboxes = document.getElementsByName('selectedPlaylists');
+        checkboxes.forEach(function (checkbox) {
+            // clear checkbox
+            checkbox.checked = false;
+            // select if has playlist
+            if (playlistsSelectedStr.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+
+    function closePlaylistsModal() {
+        document.getElementById('playlistsModal').style.display = 'none';
+        document.getElementById('playlists-overlay').style.display = 'none';
+    }
+
+    async function addPlaylists(event, videoUUID) {
+        event.stopPropagation(); // Prevents the click event from reaching the overlay
+
+        var selectedPlaylists = [];
+        var checkboxes = document.getElementsByName('selectedPlaylists');
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                selectedPlaylists.push(checkbox.value);
+            }
+        });
+
+        // Handle the selected tags (you can send them to the server using fetch)
+        console.log('Selected Playlists:', selectedPlaylists);
+
+        // Send data to Flask route using fetch
+        try {
+            const response = await fetch(`{{ url_for('mytube_blueprint.playlist_video') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ playlists: selectedPlaylists,
+                                       video_uuid: videoUUID }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Close the modal
+        closePlaylistsModal();
+    }
+</script>
+
+
+<!-- Add videos Modal -->
+<script>
+async function openAddVideosModal() {
+    try {
+        document.getElementById('addVideosModal').style.display = 'block';
+        document.getElementById('addVideos-overlay').style.display = 'block';
+
+        // Update the onclick attribute
+        var addPlaylistsButton = document.getElementById('addVideosButton');
+        addVideosButton.onclick = function(event) {
+            addVideos(event);
+        };
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+
+    function closeAddVideosModal() {
+        document.getElementById('addVideosModal').style.display = 'none';
+        document.getElementById('addVideos-overlay').style.display = 'none';
+    }
+
+    async function addVideos(event) {
+        event.stopPropagation(); // Prevents the click event from reaching the overlay
+
+        // Get the textarea element
+        var textarea = document.getElementById("VideosListBox");
+
+        // Get the value of the textarea and split it into an array of lines
+        var lines = textarea.value.split("\n");
+
+        // Remove empty lines
+        lines = lines.filter(line => line.trim() !== "");
+
+        // Output the lines to console (or do whatever you want with them)
+        console.log("Lines extracted:");
+        console.log(lines);
+
+        // Example: Add each line to a list
+        var videosToAdd = [];
+        lines.forEach(function(line) {
+            videosToAdd.push(line);
+        });
+
+        // Send data to Flask route using fetch
+        try {
+            const response = await fetch(`{{ url_for('mytube_blueprint.videos_add') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ videos: videosToAdd }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Close the modal
+        closeAddVideosModal();
+    }
+</script>
+
+
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
 </script>
 
 

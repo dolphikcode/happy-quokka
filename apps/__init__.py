@@ -19,16 +19,20 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    for module_name in ('authentication', 'home', 'mytube'):
+    for module_name in ('authentication', 'home', 'mytube', 'dostuff'):
         module = import_module('apps.{}.routes'.format(module_name))
         app.register_blueprint(module.blueprint)
 
 
 def configure_database(app):
 
-    @app.before_first_request
+    @app.before_request
     def initialize_database():
         try:
+            # The following line will remove this handler, making it
+            # only run on the first request
+            app.before_request_funcs[None].remove(initialize_database)
+
             db.create_all()
         except Exception as e:
 

@@ -61,30 +61,35 @@
             </button>
         {% endif %}
 
-        <!-- Playlists Dropdown -->
-        <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="playlistDropdown{{ video.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"  style="padding-left: 0.5rem; padding-right: 0.5rem;">
-                <!-- Playlist name or "Add to playlist" -->
-                {% if video.playlist_id %}
-                    {{ (video.playlist_name[:50] + '..') if video.playlist_name|length > 50 else video.playlist_name }}
-                {% else %}
-                     Add to playlist
+            <!-- Button to open the Tags Modal -->
+            <button class="btn btn-info" onclick="openTagsModal('{{ video.uuid }}')" data-toggle="tooltip" data-placement="top" data-bs-html="true" data-bs-title="
+                {% for t in video.tag_names %}
+                    {{ t }}<br>
+                {% endfor %}
+                ">
+                Tags
+                {% if video.tags_count > 0 %}
+                <span class="badge rounded-pill bg-danger">
+                    {{ video.tags_count }}
+                    <span class="visually-hidden">tags</span>
+                </span>
                 {% endif %}
             </button>
-            <ul class="dropdown-menu" aria-labelledby="playlistDropdown{{ video.id }}">
-                {% for playlist in playlists %}
-                    {% if playlist.id != video.playlist_id %}
-                        <li><a class="dropdown-item" href="#" onclick="addToPlaylist({{ video.id }}, {{ playlist.id }}, '{{ playlist.name }}')">{{ playlist.name }}</a></li>
-                    {% endif %}
+            <!-- Button to open the Playlists Modal -->
+            <button class="btn btn-info position-relative" onclick="openPlaylistsModal('{{ video.uuid }}')" data-toggle="tooltip" data-placement="top" data-bs-html="true" data-bs-title="
+                {% for p in video.playlist_names %}
+                    {{ p }}<br>
                 {% endfor %}
-            </ul>
-        </div>
+                ">
+                Playlists
+                {% if video.playlists_count > 0 %}
+                <span class="badge rounded-pill bg-danger">
+                    {{ video.playlists_count }}
+                    <span class="visually-hidden">playlists</span>
+                </span>
+                {% endif %}
+            </button>
 
-        <!-- Button to open the Tags Modal -->
-        <div class="btn-group me-1" role="group">
-            <span class="btn btn-outline-light" id="tags" data-video-id="tags" data-status-type="tags" style="padding-left: 0.5rem; padding-right: 0.5rem;">
-                <i class="material-icons opacity-10" onclick="openModal({{ video.tags_selected }})" style="{% if video.tags_selected %}color:green;">tag{% else %}color:black;">tag{% endif %}</i>
-            </span>
 
             <div class="dropdown">
                 <button class="btn btn-outline-light dropdown-toggle no-arrow" type="button" id="more-items" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"  style="color:black;padding-left: 0.5rem; padding-right: 0.5rem;">
@@ -133,8 +138,8 @@
         </div>
 
         <!-- Tags Modal -->
-        <div id="tagModal" class="modal card">
-            <span class="close" onclick="closeModal()">&times;</span>
+        <div id="tagsModal" class="modal card">
+            <span class="close" onclick="closeTagsModal()">&times;</span>
             <div class="card-header">
                 <h3 class="card-title">Select Tags</h3>
             </div>
@@ -153,13 +158,37 @@
                 {% endfor %}
             </div>
             <div class="card-footer">
-                <button class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Tags</button>
+                <button id="addTagsButton" class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Tags</button>
             </div>
         </div>
 
+        <!-- The Tags Overlay -->
+        <div id="tags-overlay" class="overlay" onclick="closeTagsModal()"></div>
 
-        <!-- The Overlay -->
-        <div id="overlay" class="overlay" onclick="closeModal()"></div>
+
+        <!-- Playlists Modal -->
+        <div id="playlistsModal" class="modal card">
+            <span class="close" onclick="closePlaylistsModal()">&times;</span>
+            <div class="card-header">
+                <h3 class="card-title">Select Playlist</h3>
+            </div>
+            <div class="card-body modal-content">
+                {% for playlist in playlists %}
+                    <div class="group">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="selectedPlaylists" value="{{ playlist.uuid }}">
+                            <label class="form-check-label">{{ playlist.name }}</label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="card-footer">
+                <button id="addPlaylistsButton" class="btn btn-primary add-tags-button" onclick="addTags(event)">Add Playlists</button>
+            </div>
+        </div>
+
+        <!-- The Playlists Overlay -->
+        <div id="playlists-overlay" class="overlay" onclick="closePlaylistModal()"></div>
 
         <p class="card-text">
             <a href="{{ url_for('mytube_blueprint.videos', playlist_uuid='channel', ch=video.channel) }}">
@@ -202,7 +231,7 @@
         <!-- Video Description -->
         <h4 class="card-text text-dark">Description:</h4>
         <p>
-            {% for t in video.tags_selected_names %}
+            {% for t in video.tag_names %}
                 <a class="btn btn-sm btn-warning rounded-pill "href="#"style="font-size:10px;" >#{{ t }}</a>
             {% endfor %}
         </p>
@@ -340,35 +369,6 @@
     }
 </script>
 
-<!-- Add video to the playlist -->
-<script>
-    function addToPlaylist(videoId, playlistId, playlistName) {
-        event.preventDefault();  // Prevent the default behavior of the anchor element
-        // Make an asynchronous request to update the playlist
-        fetch('{{ url_for('mytube_blueprint.add_to_playlist') }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `video_id=${videoId}&playlist_id=${playlistId}`,
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                var buttonName = "playlistDropdown"+videoId;
-                var playlistButton = document.getElementById(buttonName);
-                playlistButton.textContent = playlistName;
-                // alert('Video added to playlist successfully!');
-            } else {
-                alert('Failed to add video to playlist.');
-            }
-        })
-        .catch(error => {
-            console.error('Error adding video to playlist:', error);
-        });
-    }
-</script>
-
 <!-- Save video position -->
 <script>
 var video = document.getElementById("myVideo");
@@ -488,29 +488,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
 <!-- Tags Modal -->
 <script>
-    function openModal(tagsSelectedStr) {
-        console.log('Opening modal');  // Add this line for debugging
-        console.log('Tags Selected String:', tagsSelectedStr);
+async function openTagsModal(videoUUID) {
+    try {
+        const response = await fetch(`{{ url_for('mytube_blueprint.get_selected_tags') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ video_uuid: videoUUID }),
+        });
 
-        document.getElementById('tagModal').style.display = 'block';
-        document.getElementById('overlay').style.display = 'block';
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        tagsSelectedStr = data.tags
+        document.getElementById('tagsModal').style.display = 'block';
+        document.getElementById('tags-overlay').style.display = 'block';
+
+        // Update the onclick attribute
+        var addTagsButton = document.getElementById('addTagsButton');
+        addTagsButton.onclick = function(event) {
+            addTags(event, videoUUID);
+        };
 
         // Check checkboxes based on tags_selected
         var checkboxes = document.getElementsByName('selectedTags');
         checkboxes.forEach(function (checkbox) {
+            // clear checkbox
+            checkbox.checked = false;
+            // select if has tag
             if (tagsSelectedStr.includes(checkbox.value)) {
                 checkbox.checked = true;
             }
         });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+
+    function closeTagsModal() {
+        document.getElementById('tagsModal').style.display = 'none';
+        document.getElementById('tags-overlay').style.display = 'none';
     }
 
-
-    function closeModal() {
-        document.getElementById('tagModal').style.display = 'none';
-        document.getElementById('overlay').style.display = 'none';
-    }
-
-    async function addTags(event) {
+    async function addTags(event, videoUUID) {
         event.stopPropagation(); // Prevents the click event from reaching the overlay
 
         var selectedTags = [];
@@ -520,9 +545,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 selectedTags.push(checkbox.value);
             }
         });
-
-        // Get the video UUID from your page, replace 'your_video_uuid' with the actual value
-        var videoUUID = "{{ video.uuid }}";
 
         // Handle the selected tags (you can send them to the server using fetch)
         console.log('Selected Tags:', selectedTags);
@@ -549,10 +571,105 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Close the modal
-        closeModal();
+        closeTagsModal();
     }
 </script>
 
+<!-- Playlists Modal -->
+<script>
+async function openPlaylistsModal(videoUUID) {
+    try {
+        const response = await fetch(`{{ url_for('mytube_blueprint.get_selected_playlists') }}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ video_uuid: videoUUID }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        playlistsSelectedStr = data.playlists
+        document.getElementById('playlistsModal').style.display = 'block';
+        document.getElementById('playlists-overlay').style.display = 'block';
+
+        // Update the onclick attribute
+        var addPlaylistsButton = document.getElementById('addPlaylistsButton');
+        addPlaylistsButton.onclick = function(event) {
+            addPlaylists(event, videoUUID);
+        };
+
+        // Check checkboxes based on tags_selected
+        var checkboxes = document.getElementsByName('selectedPlaylists');
+        checkboxes.forEach(function (checkbox) {
+            // clear checkbox
+            checkbox.checked = false;
+            // select if has playlist
+            if (playlistsSelectedStr.includes(checkbox.value)) {
+                checkbox.checked = true;
+            }
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+
+    function closePlaylistsModal() {
+        document.getElementById('playlistsModal').style.display = 'none';
+        document.getElementById('playlists-overlay').style.display = 'none';
+    }
+
+    async function addPlaylists(event, videoUUID) {
+        event.stopPropagation(); // Prevents the click event from reaching the overlay
+
+        var selectedPlaylists = [];
+        var checkboxes = document.getElementsByName('selectedPlaylists');
+        checkboxes.forEach(function(checkbox) {
+            if (checkbox.checked) {
+                selectedPlaylists.push(checkbox.value);
+            }
+        });
+
+        // Handle the selected tags (you can send them to the server using fetch)
+        console.log('Selected Playlists:', selectedPlaylists);
+
+        // Send data to Flask route using fetch
+        try {
+            const response = await fetch(`{{ url_for('mytube_blueprint.playlist_video') }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ playlists: selectedPlaylists,
+                                       video_uuid: videoUUID }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Response from server:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Close the modal
+        closePlaylistsModal();
+    }
+</script>
+
+
+<script>
+    $(document).ready(function(){
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
 
 {% endblock javascripts %}
 

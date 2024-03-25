@@ -3,8 +3,10 @@
 import json
 import uuid
 import random
+from time import sleep
+
 import requests
-from sqlalchemy import func, desc, and_, select
+from sqlalchemy import func, desc, and_, select, alias
 
 from apps.mytube import blueprint
 from apps import db
@@ -17,6 +19,7 @@ from io import BytesIO
 import os.path
 
 from apps.mytube.forms import PlaylistForm, TagForm
+from apps.home.models import *
 from apps.mytube.models import *
 from apps.authentication.models import UserConfig
 
@@ -276,45 +279,49 @@ def prepare_videos(limit, source):
         if os.path.isfile(fname_audio):
             audio_found = True
 
-        # Query existing TagVideo objects for the current user and video_uuid
-        existing_tags = TagVideo.query.filter_by(
-            user_uuid=current_user.uuid,
-            video_uuid=v.uuid,
-            status=True
-        ).all()
+        # Construct subquery to retrieve tag_uuids
+        tagvideo_alias = alias(TagVideo)
+        tag_subquery = (
+            db.session.query(tagvideo_alias.c.tag_uuid)
+            .filter(
+                (tagvideo_alias.c.user_uuid == current_user.uuid) &
+                (tagvideo_alias.c.video_uuid == v.uuid) &
+                (tagvideo_alias.c.status == True)
+            )
+            .subquery()
+        )
 
-        # Extract tag_uuids from existing TagVideo objects
-        existing_tags_uuids = [tag.tag_uuid for tag in existing_tags]
+        # Query Tag names using the subquery
+        existing_tag_names = (
+            db.session.query(Tag.name)
+            .join(tag_subquery, Tag.uuid == tag_subquery.c.tag_uuid)
+            .all()
+        )
 
-        # Query existing PlaylistVideo objects for the current user and video_uuid
-        existing_playlists = PlaylistVideo.query.filter_by(
-            user_uuid=current_user.uuid,
-            video_uuid=v.uuid,
-            status=True,
-        ).all()
-        #
-        # # Extract playlist_uuids from existing PlaylistVideo objects
-        existing_playlists_uuids = [playlist.playlist_uuid for playlist in existing_playlists]
-        # existing_playlists2 = db.session.query(Playlist).filter(Playlist.uuid.in_(existing_playlists_uuids)).all()
+        # Extract playlist names from list of tuples
+        tag_names = [name for (name,) in existing_tag_names]
 
         # Construct subquery to retrieve playlist_uuids
-        subquery = select([PlaylistVideo.playlist_uuid]).where(
-            PlaylistVideo.user_uuid == current_user.uuid,
-            PlaylistVideo.video_uuid == v.uuid,
-            PlaylistVideo.status == True,
-        ).alias("subquery")
+        playlistvideo_alias = alias(PlaylistVideo)
+        subquery = (
+            select(playlistvideo_alias.c.playlist_uuid)
+            .where(
+                (playlistvideo_alias.c.user_uuid == current_user.uuid) &
+                (playlistvideo_alias.c.video_uuid == v.uuid) &
+                (playlistvideo_alias.c.status == True)
+            )
+            .alias("subquery")
+        )
 
         # Query Playlist names using the subquery
-        existing_playlists2_names = (
+        existing_playlists_names = (
             db.session.query(Playlist.name)
             .join(subquery, Playlist.uuid == subquery.c.playlist_uuid)
             .all()
         )
 
         # Extract playlist names from list of tuples
-        playlist_names = [name for (name,) in existing_playlists2_names]
-
-        print(playlist_names)
+        playlist_names = [name for (name,) in existing_playlists_names]
 
         processed_video = {
             'id': v.id,
@@ -338,10 +345,12 @@ def prepare_videos(limit, source):
             'comment': v.comment,
             'rate': v.rate,
             'uuid': v.uuid,
-            'tags_selected': existing_tags_uuids,
-            'tags_count': len(existing_tags_uuids),
-            'playlists_selected': existing_playlists_uuids,
-            'playlists_count': len(existing_playlists_uuids),
+            # 'tags_selected': existing_tags_uuids,
+            'tag_names': tag_names,
+            'tags_count': len(tag_names),
+            # 'playlists_selected': existing_playlists_uuids,
+            'playlists_count': len(playlist_names),
+            'playlist_names': playlist_names,
         }
         videos.append(processed_video)
         videos_to_load.pop(0)  # remove first item
@@ -403,11 +412,11 @@ def sort_filter(source, obiekt, atrib):
 @blueprint.route('/')
 @login_required
 def mytube():
-    row_count = db.session.query(func.count()).select_from(Video).scalar()
+    # row_count = db.session.query(func.count()).select_from(Video).scalar()
     videos_to_load = []
 
     while len(videos_to_load) < 9:
-        random_number = random.randint(1, row_count - 1)
+        random_number = random.randint(1, 2000)#row_count - 1)
         video = Video.query.get(random_number)
 
         if video.deleted is False and video.v is False:
@@ -445,7 +454,6 @@ def video(video_uuid):
     db.session.commit()
     tags = db.session.scalars(
         db.select(Tag).filter_by(user_uuid=current_user.uuid).order_by(getattr(Tag, 'group').asc())).all()
-    playlist = get_playlist(video.playlist_uuid)
     video_folder = current_app.config['VIDEO_ROOT']
 
     # Check if downloaded file exists in video folder
@@ -468,19 +476,53 @@ def video(video_uuid):
         audio_found = True
         audio_path = url_for('static', filename=f'videos/{video.youtube_id}.mp3')
 
-    # Query existing TagVideo objects for the current user and video_uuid
-    existing_tags = TagVideo.query.filter_by(
-        user_uuid=current_user.uuid,
-        video_uuid=video_uuid,
-        status=True
-    ).all()
+    # # Query existing TagVideo objects for the current user and video_uuid
+    # existing_tags = TagVideo.query.filter_by(
+    #     user_uuid=current_user.uuid,
+    #     video_uuid=video_uuid,
+    #     status=True
+    # ).all()
+    #
+    # # Extract tag_uuids from existing TagVideo objects
+    # existing_tags_uuids = [tag.tag_uuid for tag in existing_tags]
+    #
+    # existing_tags_names = []
+    # for et in existing_tags_uuids:
+    #     existing_tags_names.append(db.session.scalars(db.select(Tag).filter_by(uuid=et)).first().name)
 
-    # Extract tag_uuids from existing TagVideo objects
-    existing_tags_uuids = [tag.tag_uuid for tag in existing_tags]
+    # Construct subquery to retrieve tag_uuids
+    tag_subquery = select([TagVideo.tag_uuid]).where(
+        TagVideo.user_uuid == current_user.uuid,
+        TagVideo.video_uuid == video.uuid,
+        TagVideo.status == True,
+    ).alias("tag_subquery")
 
-    existing_tags_names = []
-    for et in existing_tags_uuids:
-        existing_tags_names.append(db.session.scalars(db.select(Tag).filter_by(uuid=et)).first().name)
+    # Query Tag names using the subquery
+    existing_tag_names = (
+        db.session.query(Tag.name)
+        .join(tag_subquery, Tag.uuid == tag_subquery.c.tag_uuid)
+        .all()
+    )
+
+    # Extract playlist names from list of tuples
+    tag_names = [name for (name,) in existing_tag_names]
+
+    # Construct subquery to retrieve playlist_uuids
+    subquery = select([PlaylistVideo.playlist_uuid]).where(
+        PlaylistVideo.user_uuid == current_user.uuid,
+        PlaylistVideo.video_uuid == video.uuid,
+        PlaylistVideo.status == True,
+    ).alias("subquery")
+
+    # Query Playlist names using the subquery
+    existing_playlists_names = (
+        db.session.query(Playlist.name)
+        .join(subquery, Playlist.uuid == subquery.c.playlist_uuid)
+        .all()
+    )
+
+    # Extract playlist names from list of tuples
+    playlist_names = [name for (name,) in existing_playlists_names]
 
     chapters = []
     for chapter in json.loads(video.chapters):
@@ -514,10 +556,15 @@ def video(video_uuid):
         'modified': video.modified,
         'comment': video.comment,
         'rate': video.rate,
-        'playlist_id': playlist.id,
-        'playlist_name': playlist.name,
-        'tags_selected': existing_tags_uuids,
-        'tags_selected_names': existing_tags_names,
+        # 'playlist_id': playlist.id,
+        # 'playlist_name': playlist.name,
+        # 'tags_selected': existing_tags_uuids,
+        # 'tags_selected_names': existing_tags_names,
+        'tag_names': tag_names,
+        'tags_count': len(tag_names),
+        # 'playlists_selected': existing_playlists_uuids,
+        'playlists_count': len(playlist_names),
+        'playlist_names': playlist_names,
         'chapters': chapters,
     }
 
@@ -1184,6 +1231,33 @@ def get_selected_playlists():
         print(f"Error: {e}")
         return jsonify({'error': 'An error occurred'}), 500
 
+
+@blueprint.route('/videos_add', methods=['POST'])
+@login_required
+def videos_add():
+    try:
+        data = request.get_json()
+        videos_to_add = data.get('videos', [])
+
+        for v in videos_to_add:
+            add_video = VideoToProcess(
+                youtube_id=v,
+                user_uuid=current_user.uuid,
+                uuid=str(uuid.uuid4()),
+                status=0
+            )
+            db.session.add(add_video)
+
+        # Commit changes to the database
+        db.session.commit()
+
+        # You can send a response back to the client
+        response_data = {'message': 'Videos added successfully'}
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'An error occurred'}), 500
 
 @blueprint.route('/make_v/<video_uuid>', methods=['GET'])
 @login_required

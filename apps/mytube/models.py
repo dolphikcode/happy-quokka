@@ -3,17 +3,6 @@ from sqlalchemy import func
 from apps import db
 
 
-class YTLogs(db.Model):
-    __tablename__ = 'YT_Logs'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    from_module = db.Column(db.String(24), nullable=False)
-    text = db.Column(db.String(2048), nullable=False)
-    user_uuid = db.Column(db.String(36), nullable=False)
-    modified = db.Column(db.DateTime, default=func.now())
-    uuid = db.Column(db.String(36), nullable=False)
-
-
 class Playlist(db.Model):
     __tablename__ = 'YT_Playlist'
 
@@ -45,17 +34,6 @@ class CreatorPlaylist(db.Model):
     playlist_name = db.Column(db.String(48), nullable=False)
     url = db.Column(db.String(256), nullable=False)
     user_uuid = db.Column(db.String(36), nullable=False)
-    modified = db.Column(db.DateTime, default=func.now())
-    uuid = db.Column(db.String(36), nullable=False)
-
-
-class Tag(db.Model):
-    __tablename__ = 'YT_Tag'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String(32), nullable=False)
-    user_uuid = db.Column(db.String(36), nullable=False)
-    group = db.Column(db.String(36), nullable=True)
     modified = db.Column(db.DateTime, default=func.now())
     uuid = db.Column(db.String(36), nullable=False)
 
@@ -100,19 +78,6 @@ class Video(db.Model):
     uuid = db.Column(db.String(36), nullable=False)
 
 
-class ApiExchange(db.Model):
-    __tablename__ = 'ApiExchange'
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_uuid = db.Column(db.String(36), nullable=False)
-    module = db.Column(db.String(20), nullable=False)
-    command = db.Column(db.String(256), nullable=False)
-    status = db.Column(db.String(20), nullable=False)
-    created = db.Column(db.DateTime, default=func.now())
-    modified = db.Column(db.DateTime, default=func.now())
-    uuid = db.Column(db.String(36), nullable=False)
-
-
 class LoadMore(db.Model):
     __tablename__ = 'YT_LoadMore'
 
@@ -120,3 +85,12 @@ class LoadMore(db.Model):
     user_uuid = db.Column(db.String(36), nullable=False)
     data = db.Column(db.Text, nullable=True)
 
+
+class VideoToProcess(db.Model):
+    __tablename__ = 'YT_VideoToProcess'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    youtube_id = db.Column(db.String(12), nullable=False)
+    user_uuid = db.Column(db.String(36), nullable=False)
+    uuid = db.Column(db.String(36), nullable=False)
+    status = db.Column(db.SmallInteger, default=0)

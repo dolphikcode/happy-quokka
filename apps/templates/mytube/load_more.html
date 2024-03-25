@@ -66,7 +66,11 @@
                 {% endif %}
                 <p>
                 <!-- Button to open the Tags Modal -->
-                <button class="btn btn-info" onclick="openTagsModal('{{ video.uuid }}')">
+                <button class="btn btn-info" onclick="openTagsModal('{{ video.uuid }}')" data-toggle="tooltip" data-placement="top" data-bs-html="true" data-bs-title="
+                    {% for t in video.tag_names %}
+                        {{ t }}<br>
+                    {% endfor %}
+                    ">
                     Tags
                     {% if video.tags_count > 0 %}
                     <span class="badge rounded-pill bg-danger">
@@ -76,7 +80,11 @@
                     {% endif %}
                 </button>
                 <!-- Button to open the Playlists Modal -->
-                <button class="btn btn-info position-relative" onclick="openPlaylistsModal('{{ video.uuid }}')" data-toggle="tooltip" data-placement="top" title="Tooltip Text">
+                <button class="btn btn-info position-relative" onclick="openPlaylistsModal('{{ video.uuid }}')" data-toggle="tooltip" data-placement="top" data-bs-html="true" data-bs-title="
+                    {% for p in video.playlist_names %}
+                        {{ p }}<br>
+                    {% endfor %}
+                    ">
                     Playlists
                     {% if video.playlists_count > 0 %}
                     <span class="badge rounded-pill bg-danger">

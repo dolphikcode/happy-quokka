@@ -38,7 +38,7 @@ protobuf==4.21.12
 psycopg2-binary==2.9.9
 pycryptodomex==3.20.0
 python-dotenv==0.19.2
-pytz==2023.3.post1
+pytz==2024.1
 rcssmin==1.1.2
 referencing==0.30.2
 requests==2.31.0
@@ -47,7 +47,7 @@ six==1.16.0
 SQLAlchemy==2.0.29
 SQLAlchemy-Utils==0.41.2
 typing_extensions==4.8.0
-urllib3==2.0.7
+urllib3==2.2.1
 uuid==1.30
 websockets==12.0
 Werkzeug==3.0.1
@@ -55,3 +55,5 @@ WTForms==3.1.2
 xxhash==3.4.1
 yarg==0.1.9
 # yt-dlp==2023.10.13
+ticktick-py @ git+https://github.com/dolphikcode/web-ticktick-py.git
+

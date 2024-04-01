@@ -4,6 +4,7 @@ import json
 import uuid
 import random
 from time import sleep
+from moviepy.editor import VideoFileClip
 
 import requests
 from sqlalchemy import func, desc, and_, select, alias

@@ -18,7 +18,13 @@
     <!-- Video Header with Embedded YouTube Video -->
     <div class="card-header text-center">
         {% if video.video_exist %}
-        <div class="col-lg-10 col-md-12 col-sm-12 mx-auto bg-light p-3">
+        <div class="col-lg-10 col-md-12 col-sm-12 mx-auto bg-light p-3 position-relative">
+            <!-- Buttons placed in top left corner -->
+            <div class="btn-group position-absolute top-0 start-0" style="z-index: 1;">
+                <button id="speedUpBtn" class="btn btn-sm btn-primary">+10%</button>
+                <button id="speedDownBtn" class="btn btn-sm btn-secondary">-10%</button>
+            </div>
+
             <video preload="auto" onloadedmetadata="this.play()" id="myVideo" controls style="width: 100%;">
                 <source src="{{ video.video_path }}" type="video/mp4">
                 Your browser does not support the video tag.
@@ -46,13 +52,6 @@
     <!-- Video Body -->
     <div class="card-body text-dark">
         <div class="btn-toolbar" role="toolbar" aria-label="Toolbar">
-
-        {% if video.video_exist %}
-            <div class="btn-group me-1" role="group">
-                <button class="btn btn-info" id="speedUpBtn" style="padding-left: 0.4rem; padding-right: 0.4rem;">Speed Up</button>
-                <button class="btn btn-warning" id="speedDownBtn" style="padding-left: 0.4rem; padding-right: 0.4rem;">Speed Down</button>
-            </div>
-        {% endif %}
 
         <!-- Chapters Collapse Button -->
         {% if video.chapters %}

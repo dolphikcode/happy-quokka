@@ -4,7 +4,7 @@ import json
 import uuid
 import random
 from time import sleep
-from moviepy.editor import VideoFileClip
+# from moviepy.editor import VideoFileClip
 
 import requests
 from sqlalchemy import func, desc, and_, select, alias
@@ -491,12 +491,47 @@ def video(video_uuid):
     # for et in existing_tags_uuids:
     #     existing_tags_names.append(db.session.scalars(db.select(Tag).filter_by(uuid=et)).first().name)
 
+    # # Construct subquery to retrieve tag_uuids
+    # tag_subquery = select([TagVideo.tag_uuid]).where(
+    #     TagVideo.user_uuid == current_user.uuid,
+    #     TagVideo.video_uuid == video.uuid,
+    #     TagVideo.status == True,
+    # ).alias("tag_subquery")
+    #
+    # # Query Tag names using the subquery
+    # existing_tag_names = (
+    #     db.session.query(Tag.name)
+    #     .join(tag_subquery, Tag.uuid == tag_subquery.c.tag_uuid)
+    #     .all()
+    # )
+    #
+    # # Extract playlist names from list of tuples
+    # tag_names = [name for (name,) in existing_tag_names]
+    #
+    # # Construct subquery to retrieve playlist_uuids
+    # subquery = select([PlaylistVideo.playlist_uuid]).where(
+    #     PlaylistVideo.user_uuid == current_user.uuid,
+    #     PlaylistVideo.video_uuid == video.uuid,
+    #     PlaylistVideo.status == True,
+    # ).alias("subquery")
+    #
+    # # Query Playlist names using the subquery
+    # existing_playlists_names = (
+    #     db.session.query(Playlist.name)
+    #     .join(subquery, Playlist.uuid == subquery.c.playlist_uuid)
+    #     .all()
+    # )
     # Construct subquery to retrieve tag_uuids
-    tag_subquery = select([TagVideo.tag_uuid]).where(
-        TagVideo.user_uuid == current_user.uuid,
-        TagVideo.video_uuid == video.uuid,
-        TagVideo.status == True,
-    ).alias("tag_subquery")
+    tagvideo_alias = alias(TagVideo)
+    tag_subquery = (
+        db.session.query(tagvideo_alias.c.tag_uuid)
+        .filter(
+            (tagvideo_alias.c.user_uuid == current_user.uuid) &
+            (tagvideo_alias.c.video_uuid == video.uuid) &
+            (tagvideo_alias.c.status == True)
+        )
+        .subquery()
+    )
 
     # Query Tag names using the subquery
     existing_tag_names = (
@@ -509,11 +544,16 @@ def video(video_uuid):
     tag_names = [name for (name,) in existing_tag_names]
 
     # Construct subquery to retrieve playlist_uuids
-    subquery = select([PlaylistVideo.playlist_uuid]).where(
-        PlaylistVideo.user_uuid == current_user.uuid,
-        PlaylistVideo.video_uuid == video.uuid,
-        PlaylistVideo.status == True,
-    ).alias("subquery")
+    playlistvideo_alias = alias(PlaylistVideo)
+    subquery = (
+        select(playlistvideo_alias.c.playlist_uuid)
+        .where(
+            (playlistvideo_alias.c.user_uuid == current_user.uuid) &
+            (playlistvideo_alias.c.video_uuid == video.uuid) &
+            (playlistvideo_alias.c.status == True)
+        )
+        .alias("subquery")
+    )
 
     # Query Playlist names using the subquery
     existing_playlists_names = (
@@ -1251,6 +1291,17 @@ def videos_add():
 
         # Commit changes to the database
         db.session.commit()
+
+        # Call the API with playlist_id and add_to_database
+        api_link = current_app.config['API_LINK']
+        api_url = f'{api_link}/new_get_info/{current_user.id}'
+
+        # Example using the requests library
+        response = requests.get(api_url)
+        if response.status_code == 200:
+            print(response)
+        else:
+            print(response)
 
         # You can send a response back to the client
         response_data = {'message': 'Videos added successfully'}

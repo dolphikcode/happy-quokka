@@ -76,6 +76,7 @@ class Video(db.Model):
     chapters = db.Column(db.Text, nullable=True)
     v = db.Column(db.Boolean, default=False, nullable=False)
     uuid = db.Column(db.String(36), nullable=False)
+    file_exist = db.Column(db.Boolean, default=False, nullable=True)
 
 
 class LoadMore(db.Model):

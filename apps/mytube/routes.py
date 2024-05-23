@@ -35,6 +35,7 @@ def videos(playlist_uuid):
         v = 'false'
 
     # Config
+    current_time = datetime.now()
     read_config = db.session.scalars(
         db.select(UserConfig).filter_by(user_uuid=current_user.uuid, name='mytube')).first()
 
@@ -47,19 +48,23 @@ def videos(playlist_uuid):
                 'filter_to_download': 'all',  # all, true, false
                 'filter_downloaded': 'all',  # all, true, false
                 'sorted': 'created-desc',  # (asc or desc) released, created, visited, duration, channel(?)
-                'limit': '100'
+                'limit': '100',
+                'last_file_check': current_time.isoformat()
             }),
             modified=func.now(),
             uuid=str(uuid.uuid4())
         )
         db.session.add(read_config)
         db.session.commit()
-    sort_atributes = json.loads(read_config.config)
+    mytube_atributes = json.loads(read_config.config)
+
+    # if file_check difference more than 15 min, send request to check files again
+    check_file_exist_backend(datetime.fromisoformat(mytube_atributes['last_file_check']))
 
     # Sort videos
     column = 'created'
-    order = sort_atributes['sorted'].split("-")[1]
-    match sort_atributes['sorted'].split("-")[0]:
+    order = mytube_atributes['sorted'].split("-")[1]
+    match mytube_atributes['sorted'].split("-")[0]:
         case "released":
             column = 'release_date'
         case "created":
@@ -158,25 +163,20 @@ def videos(playlist_uuid):
         video_folder = current_app.config['VIDEO_ROOT']
         # Check arguments
         if source != 'random':
-            if sort_atributes['filter_watched'] != 'all':
-                if v.watched != str2bool(sort_atributes['filter_watched']):
+            if mytube_atributes['filter_watched'] != 'all':
+                if v.watched != str2bool(mytube_atributes['filter_watched']):
                     continue
-            if sort_atributes['filter_to_download'] != 'all':
-                if v.to_download != str2bool(sort_atributes['filter_to_download']):
+            if mytube_atributes['filter_to_download'] != 'all':
+                if v.to_download != str2bool(mytube_atributes['filter_to_download']):
                     continue
 
         # Check if downloaded file exists in video folder
-        file_found = False
-        video_path = ''
-        fname1 = os.path.join(video_folder, f'{v.youtube_id}.mp4')
-        fname2 = os.path.join(video_folder, f'{v.youtube_id}.webm')
-        if os.path.isfile(fname1) or os.path.isfile(fname2):
-            file_found = True
-
-        if sort_atributes['filter_downloaded'] != 'all' and source != 'random':
-            if file_found != str2bool(sort_atributes['filter_downloaded']):
+        # CHANGED TO CHECK IN DB
+        if mytube_atributes['filter_downloaded'] != 'all' and source != 'random':
+            if v.file_exist != str2bool(mytube_atributes['filter_downloaded']):
                 continue
         videos_to_load.append(v.id)
+
     videos_count = len(videos_to_load)
 
     # Save to temporary table
@@ -262,16 +262,8 @@ def prepare_videos(limit, source):
                 if v.to_download != str2bool(sort_atributes['filter_to_download']):
                     continue
 
-        # Check if downloaded file exists in video folder
-        file_found = False
-        video_path = ''
-        fname1 = os.path.join(video_folder, f'{v.youtube_id}.mp4')
-        fname2 = os.path.join(video_folder, f'{v.youtube_id}.webm')
-        if os.path.isfile(fname1) or os.path.isfile(fname2):
-            file_found = True
-
         if sort_atributes['filter_downloaded'] != 'all' and source != 'random':
-            if file_found != str2bool(sort_atributes['filter_downloaded']):
+            if v.file_exist != str2bool(sort_atributes['filter_downloaded']):
                 continue
 
         # Check if audio file exists
@@ -338,7 +330,7 @@ def prepare_videos(limit, source):
             'watched': v.watched,
             'deleted': v.deleted,
             'to_download': v.to_download,
-            'video_exist': file_found,
+            'video_exist': v.file_exist,
             'audio_exist': audio_found,
             'release_date': convert_int_date_to_iso(v.release_date),
             'created': v.created,
@@ -417,7 +409,7 @@ def mytube():
     videos_to_load = []
 
     while len(videos_to_load) < 9:
-        random_number = random.randint(1, 2000)#row_count - 1)
+        random_number = random.randint(1, 2000)  #row_count - 1)
         video = Video.query.get(random_number)
 
         if video.deleted is False and video.v is False:
@@ -969,16 +961,16 @@ def download_movies():
     except:
         pass
     if not api:
-        api_command = ApiExchange()
-        api_command.user_uuid = current_user.uuid
-        api_command.uuid = str(uuid.uuid4())
-        api_command.status = 'starting download'
-        api_command.modified = datetime.utcnow()
-        api_command.module = 'download_movies'
-        api_command.command = json.dumps({
+        api = ApiExchange()
+        api.user_uuid = current_user.uuid
+        api.uuid = str(uuid.uuid4())
+        api.status = 'starting download'
+        api.modified = datetime.utcnow()
+        api.module = 'download_movies'
+        api.command = json.dumps({
             'run': True
         })
-        db.session.add(api_command)
+        db.session.add(api)
     elif not api_command['run']:
         api.command = json.dumps({
             'run': True
@@ -1081,6 +1073,31 @@ def clean_deleted():
         print(response)
 
     return redirect(url_for('mytube_blueprint.mytube'))  # Redirect after processing
+
+
+@blueprint.route('/clean_deleted', methods=['GET'])
+@login_required
+def check_file_exist_backend(last_check_date):
+    # last_file_check = datetime.fromisoformat(last_check_date)
+    # last_file_check = datetime.strptime(last_check_date, "%Y-%m-%d %H:%M:%S.%f")
+    time_difference = datetime.now() - last_check_date
+    time_difference_seconds = int(time_difference.total_seconds())
+    if time_difference_seconds > 900:
+        try:
+            # Call the API with playlist_id and add_to_database
+            api_link = current_app.config['API_LINK']
+            api_url = f'{api_link}/update_file_exist/{current_user.id}'
+
+            # Example using the requests library
+            response = requests.get(api_url)
+            if response.status_code == 200:
+                print(response)
+            else:
+                print(response)
+        except requests.exceptions.RequestException as e:
+            print(f"No connection to BACKEND: {e}")
+
+    return True
 
 
 @blueprint.route('/prepare_list')
@@ -1310,6 +1327,7 @@ def videos_add():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': 'An error occurred'}), 500
+
 
 @blueprint.route('/make_v/<video_uuid>', methods=['GET'])
 @login_required

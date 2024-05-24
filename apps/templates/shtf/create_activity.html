@@ -1,0 +1,48 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Activity {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+    <h2>Tag</h2>
+    <form method="post" action="{{ url_for('mytube_blueprint.create_tag') }}">
+        {{ form.hidden_tag() }}
+        <div class="input-group input-group-outline mb-3">
+            {{ form.name(class="form-control", placeholder="Enter tag name") }}
+        </div>
+        <div class="input-group input-group-outline mb-3">
+            {{ form.group(class="form-control", placeholder="Enter tag group (not required)") }}
+        </div>
+        <div class="text-center">
+          <button type="submit" name="playlist"
+                  class="btn bg-gradient-primary w-100 my-4 mb-2">Create Tag</button>
+        </div>
+    </form>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<!-- Bootstrap JS and Popper.js (if needed) -->
+<script src="{{ url_for('static', filename='assets/js/plugins/chartjs.min.js') }}"></script>
+
+<script>
+    const baseUrl = "{{ url_for('static', filename='') }}";
+</script>
+
+<script>
+    // JavaScript to handle playlist selection
+    document.querySelectorAll('.playlist-item').forEach(item => {
+        item.addEventListener('click', function() {
+            document.getElementById('playlistDropdown').innerText = this.innerText;
+            document.getElementById('selectedPlaylistId').value = this.dataset.playlistId;
+        });
+    });
+</script>
+
+{% endblock javascripts %}
+

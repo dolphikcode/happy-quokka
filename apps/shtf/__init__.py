@@ -3,7 +3,7 @@
 from flask import Blueprint
 
 blueprint = Blueprint(
-    'dostuff_blueprint',
+    'shtf_blueprint',
     __name__,
-    url_prefix='/todo'
+    url_prefix='/shtf'
 )

@@ -3643,7 +3643,7 @@ bars:
       - ol
       - reorder
       - settings
-      - dostuff
+      - shtf
       - ul
   unicode: f0c9
   voted: false
@@ -7155,7 +7155,7 @@ calendar-check:
       - success
       - tick
       - time
-      - dostuff
+      - shtf
       - when
       - year
   unicode: f274
@@ -8961,7 +8961,7 @@ check:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
       - 'yes'
       - ✓
   unicode: f00c
@@ -9002,7 +9002,7 @@ check-double:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
   unicode: f560
   voted: true
 check-to-slot:
@@ -9881,7 +9881,7 @@ circle-check:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
       - 'yes'
   unicode: f058
   voted: false
@@ -10858,7 +10858,7 @@ clipboard-check:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
       - 'yes'
   unicode: f46c
   voted: false
@@ -10892,7 +10892,7 @@ clipboard-list:
       - ol
       - schedule
       - tick
-      - dostuff
+      - shtf
       - ul
   unicode: f46d
   voted: false
@@ -28147,7 +28147,7 @@ list:
       - done
       - finished
       - ol
-      - dostuff
+      - shtf
       - ul
   unicode: f03a
   voted: false
@@ -28220,7 +28220,7 @@ list-ol:
       - finished
       - numbers
       - ol
-      - dostuff
+      - shtf
       - ul
   unicode: f0cb
   voted: false
@@ -28255,7 +28255,7 @@ list-ul:
       - done
       - finished
       - ol
-      - dostuff
+      - shtf
       - ul
   unicode: f0ca
   voted: false
@@ -36666,7 +36666,7 @@ rectangle-list:
       - done
       - finished
       - ol
-      - dostuff
+      - shtf
       - ul
   unicode: f022
   voted: false
@@ -41240,7 +41240,7 @@ square-check:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
       - 'yes'
       - ✓
   unicode: f14a
@@ -43880,7 +43880,7 @@ table-list:
       - done
       - finished
       - ol
-      - dostuff
+      - shtf
       - ul
   unicode: f00b
   voted: false

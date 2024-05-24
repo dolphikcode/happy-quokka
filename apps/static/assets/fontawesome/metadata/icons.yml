@@ -2930,7 +2930,7 @@ bars:
       - ol
       - reorder
       - settings
-      - dostuff
+      - shtf
       - ul
   styles:
     - solid
@@ -5803,7 +5803,7 @@ calendar-check:
       - success
       - tick
       - time
-      - dostuff
+      - shtf
       - when
       - year
   styles:
@@ -7285,7 +7285,7 @@ check:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
       - 'yes'
       - ✓
   styles:
@@ -7321,7 +7321,7 @@ check-double:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
   styles:
     - solid
   unicode: f560
@@ -8035,7 +8035,7 @@ circle-check:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
       - 'yes'
   styles:
     - solid
@@ -8832,7 +8832,7 @@ clipboard-check:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
       - 'yes'
   styles:
     - solid
@@ -8861,7 +8861,7 @@ clipboard-list:
       - ol
       - schedule
       - tick
-      - dostuff
+      - shtf
       - ul
   styles:
     - solid
@@ -22746,7 +22746,7 @@ list:
       - done
       - finished
       - ol
-      - dostuff
+      - shtf
       - ul
   styles:
     - solid
@@ -22809,7 +22809,7 @@ list-ol:
       - finished
       - numbers
       - ol
-      - dostuff
+      - shtf
       - ul
   styles:
     - solid
@@ -22839,7 +22839,7 @@ list-ul:
       - done
       - finished
       - ol
-      - dostuff
+      - shtf
       - ul
   styles:
     - solid
@@ -29633,7 +29633,7 @@ rectangle-list:
       - done
       - finished
       - ol
-      - dostuff
+      - shtf
       - ul
   styles:
     - solid
@@ -33352,7 +33352,7 @@ square-check:
       - select
       - success
       - tick
-      - dostuff
+      - shtf
       - 'yes'
       - ✓
   styles:
@@ -35462,7 +35462,7 @@ table-list:
       - done
       - finished
       - ol
-      - dostuff
+      - shtf
       - ul
   styles:
     - solid

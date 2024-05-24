@@ -8,7 +8,7 @@ import pytz
 import requests
 from sqlalchemy import func, desc, and_, select, cast, Text
 
-from apps.dostuff import blueprint
+from apps.shtf import blueprint
 from apps import db
 from flask import Flask, render_template, request, redirect, url_for, send_file, jsonify, current_app
 from flask_login import login_required, current_user
@@ -19,7 +19,7 @@ from io import BytesIO
 import os.path
 
 from apps.home.models import *
-from apps.dostuff.models import *
+from apps.shtf.models import *
 from apps.authentication.models import UserConfig
 
 from ticktick.oauth2 import OAuth2  # OAuth2 Manager
@@ -33,12 +33,12 @@ def do_stuff():
     test = tick_config()
     # Config
     read_config = db.session.scalars(
-        db.select(UserConfig).filter_by(user_uuid=current_user.uuid, name='dostuff')).first()
+        db.select(UserConfig).filter_by(user_uuid=current_user.uuid, name='shtf')).first()
 
     if not read_config:
         read_config = UserConfig(
             user_uuid=current_user.uuid,
-            name='dostuff',
+            name='shtf',
             config=json.dumps({
                 'filter_completed': 'all',  # all, true, false
                 # 'filter_to_download': 'all',  # all, true, false
@@ -98,7 +98,14 @@ def do_stuff():
 
     print(tasks)
 
-    return redirect(url_for('mytube_blueprint.mytube'))
+    return redirect(url_for('shtf_blueprint.shtf'))
+
+
+@blueprint.route('/shtf')
+@login_required
+def shtf():
+    return render_template('shtf/shtf.html',
+                           segment='dostuff')
 
 
 @blueprint.route('/add')

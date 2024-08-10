@@ -3,10 +3,38 @@
 {% block title %} Dashboard {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+
+{% endblock stylesheets %}
 
 {% block content %}
 
+
+<!-- Activity Modal -->
+<div id="activityModal" class="modal card">
+    <span class="close" onclick="closeActivityModal()">&times;</span>
+    <div class="card-header">
+        <h3 class="card-title">Select Playlist</h3>
+    </div>
+    <div class="card-body modal-content">
+        {% for playlist in playlists %}
+            <div class="group">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" name="selectedPlaylists" value="{{ playlist.uuid }}">
+                    <label class="form-check-label">{{ playlist.name }}</label>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="card-footer">
+        <button id="addActivityButton" class="btn btn-primary add-tags-button" onclick="addActivity(event)">Add Activity</button>
+    </div>
+</div>
+
+<!-- Activity Overlay -->
+<div id="activity-overlay" class="overlay" onclick="closeActivityModal()"></div>
+
+<div class="container mt-5">
     <div class="container-fluid py-4">
       <!-- TEST -->
       <div class="row">
@@ -33,7 +61,7 @@
             <div class="col-xl-6 col-lg-6 col-sm-6 mb-xl-0 mb-4">
           <div class="card">
             <div class="card-header p-3 pt-2">
-              <div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute" onclick="myFunction()">
+              <div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute" onclick="openActivityModal()" >
                 <i class="material-icons opacity-10">transfer_within_a_station</i>
               </div>
               <div class="text-end pt-1">
@@ -61,7 +89,8 @@
             <div class="col-xl-6 col-lg-6 col-sm-6 mb-xl-0 mb-4">
           <div class="card">
             <div class="card-header p-3 pt-2">
-              <div class="icon icon-lg icon-shape bg-gradient-success shadow-primary text-center border-radius-xl mt-n4 position-absolute">
+              <div class="icon icon-lg icon-shape bg-gradient-success shadow-primary text-center border-radius-xl mt-n4 position-absolute"
+              onclick="navigateTo('{{ url_for('shtf_blueprint.create_activity') }}')">
                 <!-- bg-gradient-primary dla czerwonej ikony -->
                 <i class="material-icons opacity-10">monitor_heart</i>
               </div>
@@ -168,6 +197,8 @@
         </div>
 
       </div>
+
+
       <!-- END TEST -->
 
       <div class="row mb-4">
@@ -516,8 +547,9 @@
         </div>
       </div>
 
-      {% include 'includes/footer.html' %}
     </div>
+</div>
+
 
 {% endblock content %}
 
@@ -698,4 +730,60 @@ function myFunction() {
 }
 </script>
 
+<script>
+function addActivity() {
+  console.log("Add Activity");
+  // Your custom code here
+}
+</script>
+
+<script>
+// JavaScript function to navigate to the provided URL
+function navigateTo(url) {
+    window.location.href = url;
+}
+</script>
+
+
+<!-- Activity Modal -->
+<script>
+async function openActivityModal() {
+    try {
+
+        document.getElementById('activityModal').style.display = 'block';
+        document.getElementById('activity-overlay').style.display = 'block';
+
+        // Update the onclick attribute
+        var addActivityButton = document.getElementById('addActivityButton');
+        addActivityButton.onclick = function(event) {
+            addActivity(event);
+        };
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
+
+    function closeActivityModal() {
+        document.getElementById('activityModal').style.display = 'none';
+        document.getElementById('activity-overlay').style.display = 'none';
+    }
+
+    async function addActivity(event) {
+        event.stopPropagation(); // Prevents the click event from reaching the overlay
+
+        // Send data to Flask route using fetch
+        try {
+
+            console.log('Response from server:', data);
+        } catch (error) {
+            console.error('Error:', error);
+        }
+
+        // Close the modal
+        closeActivityModal();
+    }
+</script>
 {% endblock javascripts %}

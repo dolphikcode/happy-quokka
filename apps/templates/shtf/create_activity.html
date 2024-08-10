@@ -8,17 +8,20 @@
 {% block content %}
 
     <h2>Tag</h2>
-    <form method="post" action="{{ url_for('mytube_blueprint.create_tag') }}">
+    <form method="post" action="{{ url_for('shtf_blueprint.create_activity') }}">
         {{ form.hidden_tag() }}
         <div class="input-group input-group-outline mb-3">
-            {{ form.name(class="form-control", placeholder="Enter tag name") }}
+            {{ form.name(class="form-control", placeholder="Enter activity name") }}
         </div>
         <div class="input-group input-group-outline mb-3">
-            {{ form.group(class="form-control", placeholder="Enter tag group (not required)") }}
+            {{ form.basic_points_ratio(class="form-control", placeholder="Enter basic points ratio") }}
+        </div>
+        <div class="input-group input-group-outline mb-3">
+            {{ form.basic_health_ratio(class="form-control", placeholder="Enter basic health ratio") }}
         </div>
         <div class="text-center">
           <button type="submit" name="playlist"
-                  class="btn bg-gradient-primary w-100 my-4 mb-2">Create Tag</button>
+                  class="btn bg-gradient-primary w-100 my-4 mb-2">Create Activity</button>
         </div>
     </form>
 

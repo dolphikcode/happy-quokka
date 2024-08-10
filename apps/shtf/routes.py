@@ -18,9 +18,10 @@ from datetime import datetime, timedelta
 from io import BytesIO
 import os.path
 
-from apps.home.models import *
+# from apps.home.models import *
 from apps.shtf.models import *
 from apps.authentication.models import UserConfig
+from apps.shtf.forms import ActivityForm
 
 from ticktick.oauth2 import OAuth2  # OAuth2 Manager
 from ticktick.api import TickTickClient  # Main Interface
@@ -106,6 +107,30 @@ def do_stuff():
 def shtf():
     return render_template('shtf/shtf.html',
                            segment='dostuff')
+
+
+@blueprint.route('/activity/create', methods=['GET', 'POST'])
+@login_required
+def create_activity():
+    form = ActivityForm()
+
+    if form.validate_on_submit():
+        new_activity = Activity(
+            user_uuid=current_user.uuid,
+            uuid=str(uuid.uuid4()),
+            modified=func.now(),
+            name=form.name.data,
+            basic_pts_ratio=float(form.basic_points_ratio.data),
+            added_pts_ratio=1.0,
+            basic_health_ratio=float(form.basic_health_ratio.data),
+            added_health_ratio=1.0,
+        )
+        db.session.add(new_activity)
+
+        db.session.commit()
+        return redirect(url_for('shtf_blueprint.shtf'))
+
+    return render_template('shtf/create_activity.html', form=form)
 
 
 @blueprint.route('/add')
